@@ -1,7 +1,6 @@
 'use client';
 import { useState, useCallback } from 'react';
 import type { SEOReport } from '@/lib/types';
-import type { ReactNode } from 'react';
 
 function scoreColor(s: number) {
   return s >= 80 ? '#00f5a0' : s >= 60 ? '#ffb700' : '#ff4060';
@@ -109,7 +108,7 @@ function Card({
 }: {
   title: string;
   score?: number;
-  children: ReactNode;
+  children: React.ReactNode;
   accent?: string;
 }) {
   const c = score !== undefined ? scoreColor(score) : accent || '#00d4ff';
@@ -309,6 +308,7 @@ const TABS = [
   { id: 'social', label: 'Social' },
   { id: 'content', label: 'Content' },
   { id: 'amp', label: '⚡ AMP' },
+  { id: 'intelligence', label: '🧠 Intelligence' },
   { id: 'competitor', label: 'Competitor' },
 ];
 
@@ -415,7 +415,7 @@ export default function Page() {
                 borderRadius: 3,
               }}
             >
-              v2.0
+              v3.0
             </span>
           </div>
           <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#2a4560', letterSpacing: '0.1em' }}>
@@ -439,7 +439,7 @@ export default function Page() {
             <span style={{ color: '#cdd8e8' }}> Analysis</span>
           </h1>
           <p style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.8rem', color: '#5a7a96', marginBottom: 32 }}>
-            On-page · Technical · Crawl · Security · Speed · Rendering · Social · Content · Competitor
+            On-page · Technical · Crawl · Security · Speed · Rendering · Social · AMP · Intelligence · Competitor
           </p>
 
           <div style={{ display: 'flex', gap: 8, maxWidth: 680, margin: '0 auto' }}>
@@ -570,6 +570,7 @@ export default function Page() {
                   { score: report.social.score, label: 'Social' },
                   { score: report.content.score, label: 'Content' },
                   { score: report.amp?.score ?? 0, label: '⚡ AMP' },
+                  { score: report.intelligence?.score ?? 0, label: '🧠 Intel' },
                 ].map((s) => (
                   <Ring key={s.label} score={s.score} label={s.label} size={72} />
                 ))}
@@ -637,6 +638,8 @@ export default function Page() {
                         ...report.rendering.issues,
                         ...report.content.issues,
                         ...report.social.issues,
+                        ...(report.intelligence?.eeat?.gaps ?? []),
+                        ...(report.intelligence?.linkQuality?.hints ?? []),
                       ].length === 0 ? (
                         <IssueItem text="No critical issues found — great job!" type="ok" />
                       ) : (
@@ -650,6 +653,8 @@ export default function Page() {
                           ...report.rendering.issues,
                           ...report.content.issues,
                           ...report.social.issues,
+                          ...(report.intelligence?.eeat?.gaps ?? []),
+                          ...(report.intelligence?.linkQuality?.hints ?? []),
                         ].map((iss, i) => (
                           <IssueItem
                             key={i}
@@ -1482,6 +1487,208 @@ export default function Page() {
                 </div>
               )}
 
+              {tab === 'intelligence' && report.intelligence && (
+                <div style={{ display: 'grid', gap: 16 }}>
+
+                  {/* SERP Preview */}
+                  <Card title="🔍 SERP Preview — How Google Shows Your Page" accent="#00d4ff">
+                    <div style={{ background: '#fff', borderRadius: 8, padding: '16px 20px', marginBottom: 12 }}>
+                      <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '1.1rem', color: '#1a0dab', marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 600 }}>
+                        {report.intelligence.serp.title || <span style={{ color: '#999' }}>No title set</span>}
+                      </div>
+                      <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.78rem', color: '#006621', marginBottom: 4 }}>
+                        {report.url}
+                      </div>
+                      <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#545454', lineHeight: 1.5, maxWidth: 600 }}>
+                        {report.intelligence.serp.metaDescription || <span style={{ color: '#999' }}>No meta description — Google will generate a snippet automatically</span>}
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      {[
+                        {
+                          label: 'Title Width',
+                          px: report.intelligence.serp.titlePixels,
+                          max: report.intelligence.serp.titleMaxPixels,
+                          risk: report.intelligence.serp.titleTruncationRisk,
+                        },
+                        {
+                          label: 'Description Width',
+                          px: report.intelligence.serp.descriptionPixels,
+                          max: report.intelligence.serp.descriptionMaxPixels,
+                          risk: report.intelligence.serp.descriptionTruncationRisk,
+                        },
+                      ].map(m => {
+                        const pct = Math.min(100, Math.round((m.px / m.max) * 100));
+                        const barColor = m.risk === 'low' ? '#00f5a0' : m.risk === 'medium' ? '#ffb700' : '#ff4060';
+                        return (
+                          <div key={m.label} style={{ background: '#101b2e', borderRadius: 6, padding: '12px 14px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#5a7a96', textTransform: 'uppercase' }}>{m.label}</span>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: barColor, fontWeight: 600 }}>
+                                {m.risk.toUpperCase()} RISK
+                              </span>
+                            </div>
+                            <div style={{ height: 5, background: '#162035', borderRadius: 3, marginBottom: 6, overflow: 'hidden' }}>
+                              <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 3, transition: 'width 1s ease' }} />
+                            </div>
+                            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: '#2a4560' }}>
+                              ~{m.px}px used of {m.max}px ({pct}%)
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </Card>
+
+                  {/* Search Intent + E-E-A-T side by side */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+
+                    {/* Search Intent */}
+                    <Card title="🎯 Search Intent Detection" score={report.intelligence.intent.mismatchRisk === 'low' ? 90 : report.intelligence.intent.mismatchRisk === 'medium' ? 65 : 40}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16, padding: '12px 14px', background: '#101b2e', borderRadius: 6 }}>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontFamily: 'Barlow', fontWeight: 900, fontSize: '1.5rem', textTransform: 'uppercase', color: '#00d4ff', lineHeight: 1 }}>
+                            {report.intelligence.intent.intent}
+                          </div>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>
+                            Detected Intent
+                          </div>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#5a7a96', marginBottom: 4 }}>
+                            Mismatch Risk:
+                            <span style={{ marginLeft: 6, color: report.intelligence.intent.mismatchRisk === 'low' ? '#00f5a0' : report.intelligence.intent.mismatchRisk === 'medium' ? '#ffb700' : '#ff4060', fontWeight: 600 }}>
+                              {report.intelligence.intent.mismatchRisk.toUpperCase()}
+                            </span>
+                          </div>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', lineHeight: 1.6 }}>
+                            {report.intelligence.intent.mismatchRisk === 'low'
+                              ? 'Content aligns well with detected intent signals.'
+                              : report.intelligence.intent.mismatchRisk === 'medium'
+                              ? 'Mixed intent signals — consider clarifying page purpose.'
+                              : 'Weak or conflicting intent signals detected — review your content focus.'}
+                          </div>
+                        </div>
+                      </div>
+                      {(['informational', 'commercial', 'transactional', 'navigational'] as const).map(type => {
+                        const val = report.intelligence.intent.scores[type];
+                        const isTop = type === report.intelligence.intent.intent;
+                        return (
+                          <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: isTop ? '#00d4ff' : '#5a7a96', minWidth: 110, textTransform: 'capitalize', fontWeight: isTop ? 600 : 400 }}>{type}</span>
+                            <div style={{ flex: 1, height: 4, background: '#162035', borderRadius: 2, overflow: 'hidden' }}>
+                              <div style={{ height: '100%', width: `${Math.min(100, val * 20)}%`, background: isTop ? '#00d4ff' : '#1e2f4a', borderRadius: 2, transition: 'width 1s ease' }} />
+                            </div>
+                            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: '#2a4560', minWidth: 20, textAlign: 'right' }}>{val}</span>
+                          </div>
+                        );
+                      })}
+                    </Card>
+
+                    {/* E-E-A-T */}
+                    <Card title="🏅 E-E-A-T Signals" score={report.intelligence.eeat.score}>
+                      {report.intelligence.eeat.gaps.map((g, i) => <IssueItem key={i} text={g} type="warn" />)}
+                      {!report.intelligence.eeat.gaps.length && <IssueItem text="All E-E-A-T signals detected!" type="ok" />}
+                      <div style={{ marginTop: 12 }}>
+                        {[
+                          { label: 'Author meta tag', pass: report.intelligence.eeat.signals.hasAuthorMeta },
+                          { label: 'Article schema (JSON-LD)', pass: report.intelligence.eeat.signals.hasArticleSchema },
+                          { label: 'Organization schema', pass: report.intelligence.eeat.signals.hasOrgSchema },
+                          { label: 'About page linked', pass: report.intelligence.eeat.signals.hasAbout },
+                          { label: 'Contact page linked', pass: report.intelligence.eeat.signals.hasContact },
+                          { label: 'Privacy/Terms linked', pass: report.intelligence.eeat.signals.hasPolicy },
+                          { label: 'Review content', pass: report.intelligence.eeat.signals.hasReviews },
+                          { label: `Authoritative citations (${report.intelligence.eeat.signals.citationsCount})`, pass: report.intelligence.eeat.signals.citationsCount > 0 },
+                        ].map(s => (
+                          <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', background: '#101b2e', borderRadius: 4, marginBottom: 4 }}>
+                            <span style={{ color: s.pass ? '#00f5a0' : '#ff4060', fontFamily: 'IBM Plex Mono', fontSize: '0.75rem', flexShrink: 0 }}>{s.pass ? '✓' : '✗'}</span>
+                            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: s.pass ? '#cdd8e8' : '#5a7a96' }}>{s.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  </div>
+
+                  {/* Entity Coverage + Link Quality side by side */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+
+                    {/* Entity Coverage */}
+                    <Card title="🏷 Named Entity Coverage" score={report.intelligence.entities.coverageScore}>
+                      <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+                        <div style={{ flex: 1, background: '#101b2e', borderRadius: 6, padding: '10px 12px', textAlign: 'center' }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '1.4rem', fontWeight: 600, color: '#00d4ff', lineHeight: 1 }}>{report.intelligence.entities.uniqueCount}</div>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: '#2a4560', textTransform: 'uppercase', marginTop: 3 }}>Unique Entities</div>
+                        </div>
+                        <div style={{ flex: 1, background: '#101b2e', borderRadius: 6, padding: '10px 12px', textAlign: 'center' }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '1.4rem', fontWeight: 600, color: report.intelligence.entities.coverageScore >= 75 ? '#00f5a0' : '#ffb700', lineHeight: 1 }}>{report.intelligence.entities.coverageScore}</div>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: '#2a4560', textTransform: 'uppercase', marginTop: 3 }}>Coverage Score</div>
+                        </div>
+                      </div>
+                      {report.intelligence.entities.hints.map((h, i) => <IssueItem key={i} text={h} type="warn" />)}
+                      {report.intelligence.entities.topEntities.length > 0 && (
+                        <div style={{ marginTop: 12 }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Top Entities Detected</div>
+                          {report.intelligence.entities.topEntities.slice(0, 10).map((e, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid #162035' }}>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: '#cdd8e8', flex: 1 }}>{e.name}</span>
+                              <div style={{ width: 60, height: 3, background: '#162035', borderRadius: 2, overflow: 'hidden' }}>
+                                <div style={{ height: '100%', width: `${Math.min(100, e.count * 10)}%`, background: '#00d4ff', borderRadius: 2 }} />
+                              </div>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: '#5a7a96', minWidth: 24, textAlign: 'right' }}>{e.count}x</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </Card>
+
+                    {/* Link Quality */}
+                    <Card title="🔗 Internal Link Quality" score={report.intelligence.linkQuality.score}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                        {[
+                          { label: 'Total Internal', value: report.intelligence.linkQuality.totals.total, color: '#00d4ff' },
+                          { label: 'Contextual', value: report.intelligence.linkQuality.totals.contextual, color: '#00f5a0' },
+                          { label: 'Nav/Footer', value: report.intelligence.linkQuality.totals.navFooter, color: '#ffb700' },
+                        ].map(s => (
+                          <div key={s.label} style={{ flex: 1, minWidth: 80, background: '#101b2e', border: '1px solid #162035', borderRadius: 6, padding: '10px 12px' }}>
+                            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '1.3rem', fontWeight: 600, color: s.color, lineHeight: 1, marginBottom: 3 }}>{s.value}</div>
+                            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: '#2a4560', textTransform: 'uppercase' }}>{s.label}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+                        <div style={{ flex: 1, background: '#101b2e', borderRadius: 5, padding: '8px 10px' }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', marginBottom: 4 }}>Anchor Diversity</div>
+                          <div style={{ height: 4, background: '#162035', borderRadius: 2, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${Math.min(100, report.intelligence.linkQuality.anchorDiversity * 100)}%`, background: report.intelligence.linkQuality.anchorDiversity > 0.5 ? '#00f5a0' : '#ffb700', borderRadius: 2, transition: 'width 1s ease' }} />
+                          </div>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#5a7a96', marginTop: 3 }}>{Math.round(report.intelligence.linkQuality.anchorDiversity * 100)}%</div>
+                        </div>
+                        <div style={{ flex: 1, background: '#101b2e', borderRadius: 5, padding: '8px 10px' }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', marginBottom: 4 }}>Generic Anchor Ratio</div>
+                          <div style={{ height: 4, background: '#162035', borderRadius: 2, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${Math.min(100, report.intelligence.linkQuality.genericAnchorRatio)}%`, background: report.intelligence.linkQuality.genericAnchorRatio > 18 ? '#ff4060' : '#00f5a0', borderRadius: 2, transition: 'width 1s ease' }} />
+                          </div>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#5a7a96', marginTop: 3 }}>{report.intelligence.linkQuality.genericAnchorRatio}%</div>
+                        </div>
+                      </div>
+                      {report.intelligence.linkQuality.hints.map((h, i) => <IssueItem key={i} text={h} type="warn" />)}
+                      {!report.intelligence.linkQuality.hints.length && <IssueItem text="Internal link quality looks great!" type="ok" />}
+                      {report.intelligence.linkQuality.topAnchors.length > 0 && (
+                        <div style={{ marginTop: 12 }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Top Anchor Texts</div>
+                          {report.intelligence.linkQuality.topAnchors.slice(0, 8).map((a, i) => (
+                            <div key={i} style={{ display: 'flex', gap: 10, padding: '4px 0', borderBottom: '1px solid #162035', alignItems: 'center' }}>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: '#cdd8e8', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.text}</span>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: '#5a7a96', flexShrink: 0 }}>{a.count}x</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </Card>
+                  </div>
+                </div>
+              )}
+
               {tab === 'competitor' && (
                 <div style={{ display: 'grid', gap: 16 }}>
                   <Card title="Competitor Comparison">
@@ -1513,7 +1720,7 @@ export default function Page() {
                       />
                       <button
                         onClick={compareCompetitor}
-                       disabled={compLoading || !compUrl.trim() || !report}
+                        disabled={compLoading || !compUrl.trim()}
                         style={{
                           padding: '10px 18px',
                           background: '#00d4ff',

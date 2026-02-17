@@ -118,6 +118,7 @@ const TABS = [
   { id: 'rendering', label: 'Rendering' },
   { id: 'social', label: 'Social' },
   { id: 'content', label: 'Content' },
+  { id: 'amp', label: '⚡ AMP' },
   { id: 'competitor', label: 'Competitor' },
 ];
 
@@ -250,6 +251,7 @@ export default function Page() {
                   { score: report.rendering.score, label: 'Rendering' },
                   { score: report.social.score, label: 'Social' },
                   { score: report.content.score, label: 'Content' },
+                  { score: report.amp?.score ?? 0, label: '⚡ AMP' },
                 ].map(s => <Ring key={s.label} score={s.score} label={s.label} size={72} />)}
               </div>
             </div>
@@ -280,6 +282,7 @@ export default function Page() {
                     <StatBox label="H2 Tags" value={report.onPage.headings.h2.length} />
                     <StatBox label="Structured Data" value={report.technical.structuredData.found ? 'Yes' : 'No'} color={report.technical.structuredData.found ? '#00f5a0' : '#ff4060'} />
                     <StatBox label="HTTPS" value={report.security.https ? 'Yes' : 'No'} color={report.security.https ? '#00f5a0' : '#ff4060'} />
+                    <StatBox label="AMP" value={report.amp?.hasAmp ? (report.amp.isAmpPage ? '⚡ Is AMP' : '⚡ Linked') : 'None'} color={report.amp?.hasAmp ? '#00f5a0' : '#ffb700'} />
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
@@ -610,6 +613,227 @@ export default function Page() {
                       <IssueItem text={`Backlinks data: ${report.backlinks.externalLinksOut} outbound links, ${report.backlinks.nofollowRatio}% nofollow — ${report.backlinks.note}`} type="warn" />
                     </div>
                   </Card>
+                </div>
+              )}
+
+              {/* ── AMP ── */}
+              {tab === 'amp' && report.amp && (
+                <div style={{ display: 'grid', gap: 16 }}>
+
+                  {/* AMP Status Banner */}
+                  <div style={{ background: report.amp.hasAmp ? 'rgba(0,245,160,0.04)' : 'rgba(255,183,0,0.04)', border: `1px solid ${report.amp.hasAmp ? 'rgba(0,245,160,0.2)' : 'rgba(255,183,0,0.2)'}`, borderRadius: 10, padding: '20px 24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 24 }}>
+                    <div style={{ fontSize: '2.5rem' }}>{report.amp.hasAmp ? '⚡' : '○'}</div>
+                    <div>
+                      <div style={{ fontFamily: 'Barlow', fontWeight: 800, fontSize: '1.3rem', color: report.amp.hasAmp ? '#00f5a0' : '#ffb700', marginBottom: 4 }}>
+                        {report.amp.isAmpPage ? 'This IS an AMP Page' : report.amp.hasAmp ? 'AMP Version Detected' : 'No AMP Version Found'}
+                      </div>
+                      <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: '#5a7a96' }}>
+                        {report.amp.ampUrl ? `AMP URL: ${report.amp.ampUrl}` : 'No amphtml link found on this page'}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginLeft: 'auto' }}>
+                      {[
+                        { score: report.amp.validation.score, label: 'Validation' },
+                        { score: report.amp.technical.score, label: 'Technical' },
+                        { score: report.amp.content.score, label: 'Content' },
+                        { score: report.amp.performance.score, label: 'Performance' },
+                      ].map(s => <Ring key={s.label} score={s.score} label={s.label} size={68} />)}
+                    </div>
+                  </div>
+
+                  {/* No AMP state */}
+                  {!report.amp.hasAmp && (
+                    <Card title="AMP Recommendations" accent="#ffb700">
+                      {report.amp.recommendations.map((r, i) => <IssueItem key={i} text={r} type="warn" />)}
+                      <div style={{ marginTop: 16, padding: 14, background: '#080e1a', borderRadius: 6, fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: '#5a7a96', lineHeight: 1.8 }}>
+                        <div style={{ color: '#00d4ff', marginBottom: 8, fontWeight: 600 }}>Quick Start — Add AMP to your page:</div>
+                        {'1. Create /amp/ version of each page\n2. Add ⚡ attribute to <html amp lang="en">\n3. Include AMP boilerplate + runtime script\n4. Add <link rel="canonical"> pointing to original\n5. On original page add <link rel="amphtml" href="/amp/">'.split('\n').map((line, i) => (
+                          <div key={i} style={{ padding: '3px 0' }}>{line}</div>
+                        ))}
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* AMP Validation */}
+                  {report.amp.hasAmp && (
+                    <>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+                        <Card title="AMP Validation Checks" score={report.amp.validation.score}>
+                          {report.amp.validation.issues.map((i, idx) => <IssueItem key={idx} text={i} type={i.toLowerCase().includes('missing') ? 'error' : 'warn'} />)}
+                          {!report.amp.validation.issues.length && <IssueItem text="AMP validation passed all checks!" type="ok" />}
+                          <div style={{ marginTop: 12 }}>
+                            <Check label="⚡ HTML attribute" value={report.amp.validation.hasAmpHtmlAttribute} pass={report.amp.validation.hasAmpHtmlAttribute} />
+                            <Check label="charset=utf-8" value={report.amp.validation.hasCharsetUtf8} pass={report.amp.validation.hasCharsetUtf8} />
+                            <Check label="Viewport meta" value={report.amp.validation.hasViewport} pass={report.amp.validation.hasViewport} />
+                            <Check label="AMP Boilerplate CSS" value={report.amp.validation.hasAmpBoilerplate} pass={report.amp.validation.hasAmpBoilerplate} />
+                            <Check label="AMP Runtime JS" value={report.amp.validation.hasAmpRuntime} pass={report.amp.validation.hasAmpRuntime} />
+                            <Check label="Canonical link" value={report.amp.validation.hasCanonicalLink} pass={report.amp.validation.hasCanonicalLink} />
+                            <Check label="No custom JS" value={report.amp.validation.noCustomJs} pass={report.amp.validation.noCustomJs} />
+                            <Check label="No inline styles" value={report.amp.validation.noInlineStyles} pass={report.amp.validation.noInlineStyles} />
+                            <Check label="Uses <amp-img>" value={report.amp.validation.usesAmpImg} pass={report.amp.validation.usesAmpImg} />
+                            <Check label="Uses <amp-video>" value={report.amp.validation.usesAmpVideo} pass={report.amp.validation.usesAmpVideo} />
+                            <Check label="No <form> (use amp-form)" value={report.amp.validation.noFormElements} pass={report.amp.validation.noFormElements} />
+                          </div>
+                        </Card>
+
+                        <Card title="AMP Technical SEO" score={report.amp.technical.score}>
+                          {report.amp.technical.issues.map((i, idx) => <IssueItem key={idx} text={i} type={i.toLowerCase().includes('noindex') || i.toLowerCase().includes('missing') ? 'error' : 'warn'} />)}
+                          {!report.amp.technical.issues.length && <IssueItem text="AMP technical checks passed!" type="ok" />}
+                          <div style={{ marginTop: 12 }}>
+                            <Check label="Indexable" value={report.amp.technical.isIndexable} pass={report.amp.technical.isIndexable} />
+                            <Check label="Canonical set" value={report.amp.technical.canonicalUrl} pass={!!report.amp.technical.canonicalUrl} />
+                            <Check label="Points to non-AMP" value={report.amp.technical.canonicalPointsToNonAmp} pass={report.amp.technical.canonicalPointsToNonAmp} />
+                            <Check label="Self-canonical" value={!report.amp.technical.selfCanonical ? 'No (correct)' : 'Yes (wrong!)'} pass={!report.amp.technical.selfCanonical} />
+                            <Check label="Structured data" value={report.amp.technical.structuredData.found ? report.amp.technical.structuredData.types.join(', ') : 'None'} pass={report.amp.technical.structuredData.found} />
+                            <Check label="Hreflang tags" value={report.amp.technical.hreflang.length > 0 ? report.amp.technical.hreflang.join(', ') : 'None'} pass={true} />
+                            <Check label="Robots meta" value={report.amp.technical.robotsMeta || 'Not set (default: index)'} pass={true} />
+                            <Check label="AMP Runtime src" value={report.amp.technical.ampRuntimeSrc} pass={!!report.amp.technical.ampRuntimeSrc} />
+                          </div>
+                        </Card>
+                      </div>
+
+                      {/* AMP Components */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+                        <Card title="AMP Components Used">
+                          {report.amp.technical.ampComponents.length === 0 && report.amp.technical.ampExtensions.length === 0
+                            ? <IssueItem text="No AMP components detected" type="warn" />
+                            : (
+                              <>
+                                {report.amp.technical.ampComponents.length > 0 && (
+                                  <div style={{ marginBottom: 12 }}>
+                                    <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>In-page Components</div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                      {report.amp.technical.ampComponents.map((c, i) => (
+                                        <span key={i} style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#00d4ff', background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)', padding: '2px 8px', borderRadius: 3 }}>{c}</span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                {report.amp.technical.ampExtensions.length > 0 && (
+                                  <div>
+                                    <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Extension Scripts</div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                      {report.amp.technical.ampExtensions.map((e, i) => (
+                                        <span key={i} style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#00f5a0', background: 'rgba(0,245,160,0.08)', border: '1px solid rgba(0,245,160,0.2)', padding: '2px 8px', borderRadius: 3 }}>{e}</span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            )
+                          }
+                        </Card>
+
+                        <Card title="AMP Content & Media" score={report.amp.content.score}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                            <StatBox label="Words" value={report.amp.content.wordCount.toLocaleString()} />
+                            <StatBox label="amp-img" value={report.amp.content.ampImgCount} color="#00f5a0" />
+                            <StatBox label="<img> (bad)" value={report.amp.content.regularImgCount} color={report.amp.content.regularImgCount > 0 ? '#ff4060' : '#00f5a0'} />
+                            <StatBox label="amp-video" value={report.amp.content.ampVideoCount} color="#00d4ff" />
+                            <StatBox label="amp-iframe" value={report.amp.content.ampIframeCount} />
+                            <StatBox label="Has Ads" value={report.amp.content.hasAd ? 'Yes' : 'No'} color={report.amp.content.hasAd ? '#ffb700' : '#5a7a96'} />
+                          </div>
+                          {report.amp.content.hasSocialEmbed && (
+                            <div style={{ marginBottom: 8 }}>
+                              <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Social Embeds</div>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                                {report.amp.content.socialEmbedComponents.map((s, i) => (
+                                  <span key={i} style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#ffb700', background: 'rgba(255,183,0,0.08)', border: '1px solid rgba(255,183,0,0.2)', padding: '2px 8px', borderRadius: 3 }}>{s}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {report.amp.content.issues.map((i, idx) => <IssueItem key={idx} text={i} />)}
+                          {!report.amp.content.issues.length && <IssueItem text="AMP content is properly structured!" type="ok" />}
+                        </Card>
+                      </div>
+
+                      {/* AMP Performance */}
+                      <Card title="AMP Performance Analysis" score={report.amp.performance.score}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                          <StatBox label="Custom CSS" value={`${report.amp.performance.customCssKb}KB`} color={report.amp.performance.customCssKb > 50 ? '#ff4060' : report.amp.performance.customCssKb > 30 ? '#ffb700' : '#00f5a0'} />
+                          <StatBox label="Total Scripts" value={report.amp.performance.scriptTagsCount} />
+                          <StatBox label="Allowed Scripts" value={report.amp.performance.allowedScriptCount} color="#00f5a0" />
+                          <StatBox label="Blocked Scripts" value={report.amp.performance.externalScriptsBlocked} color={report.amp.performance.externalScriptsBlocked > 0 ? '#ff4060' : '#00f5a0'} />
+                          <StatBox label="Inline Styles" value={report.amp.performance.inlineStylesCount} color={report.amp.performance.inlineStylesCount > 0 ? '#ffb700' : '#00f5a0'} />
+                          <StatBox label="Critical Path" value={report.amp.performance.criticalPathOptimized ? '✓ OK' : '✗ Fix'} color={report.amp.performance.criticalPathOptimized ? '#00f5a0' : '#ff4060'} />
+                        </div>
+                        {report.amp.performance.issues.map((i, idx) => <IssueItem key={idx} text={i} />)}
+                        {!report.amp.performance.issues.length && <IssueItem text="AMP performance optimizations look good!" type="ok" />}
+                        <div style={{ marginTop: 12 }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>CSS Budget ({report.amp.performance.customCssKb}KB / 75KB limit)</div>
+                          <div style={{ height: 6, background: '#162035', borderRadius: 3, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', borderRadius: 3, transition: 'width 1s ease', width: `${Math.min(100, (report.amp.performance.customCssKb / 75) * 100)}%`, background: report.amp.performance.customCssKb > 50 ? '#ff4060' : report.amp.performance.customCssKb > 30 ? '#ffb700' : '#00f5a0' }} />
+                          </div>
+                        </div>
+                      </Card>
+
+                      {/* AMP vs Canonical Comparison */}
+                      {report.amp.comparison ? (
+                        <Card title="⚡ AMP vs Canonical — Content Parity" accent="#00d4ff">
+                          <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
+                            <div style={{ flex: 1, background: '#080e1a', borderRadius: 6, padding: 14 }}>
+                              <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Content Parity</div>
+                              <div style={{ fontFamily: 'Barlow', fontWeight: 800, fontSize: '2rem', color: scoreColor(report.amp.comparison.contentParity) }}>{report.amp.comparison.contentParity}%</div>
+                              <div style={{ height: 4, background: '#162035', borderRadius: 2, marginTop: 8 }}>
+                                <div style={{ height: '100%', borderRadius: 2, width: `${report.amp.comparison.contentParity}%`, background: scoreColor(report.amp.comparison.contentParity), transition: 'width 1s ease' }} />
+                              </div>
+                            </div>
+                            <div style={{ flex: 1, background: '#080e1a', borderRadius: 6, padding: 14 }}>
+                              <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>SEO Equivalence</div>
+                              <div style={{ fontFamily: 'Barlow', fontWeight: 800, fontSize: '2rem', color: scoreColor(report.amp.comparison.seoEquivalence) }}>{report.amp.comparison.seoEquivalence}%</div>
+                              <div style={{ height: 4, background: '#162035', borderRadius: 2, marginTop: 8 }}>
+                                <div style={{ height: '100%', borderRadius: 2, width: `${report.amp.comparison.seoEquivalence}%`, background: scoreColor(report.amp.comparison.seoEquivalence), transition: 'width 1s ease' }} />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Side-by-side snapshot */}
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 8, marginBottom: 16 }}>
+                            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#00d4ff', fontWeight: 600, textAlign: 'right', textTransform: 'uppercase' }}>CANONICAL</div>
+                            <div />
+                            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#ffb700', fontWeight: 600, textTransform: 'uppercase' }}>AMP</div>
+                          </div>
+                          {[
+                            { field: 'Title', a: report.amp.comparison.canonical.title, b: report.amp.comparison.amp.title },
+                            { field: 'Word Count', a: report.amp.comparison.canonical.wordCount, b: report.amp.comparison.amp.wordCount },
+                            { field: 'H1', a: report.amp.comparison.canonical.h1, b: report.amp.comparison.amp.h1 },
+                            { field: 'Images', a: report.amp.comparison.canonical.imgCount, b: report.amp.comparison.amp.imgCount },
+                            { field: 'Internal Links', a: report.amp.comparison.canonical.internalLinks, b: report.amp.comparison.amp.internalLinks },
+                            { field: 'Structured Data', a: report.amp.comparison.canonical.structuredData, b: report.amp.comparison.amp.structuredData },
+                          ].map((row, i) => (
+                            <CompareRow key={i} label={row.field} a={row.a} b={row.b} />
+                          ))}
+
+                          {/* Diffs */}
+                          {report.amp.comparison.differences.length > 0 && (
+                            <div style={{ marginTop: 16 }}>
+                              <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Detected Differences</div>
+                              {report.amp.comparison.differences.map((diff, i) => (
+                                <IssueItem key={i} text={`[${diff.field}] ${diff.message}`} type={diff.severity === 'critical' ? 'error' : diff.severity === 'warning' ? 'warn' : 'warn'} />
+                              ))}
+                            </div>
+                          )}
+                          {report.amp.comparison.differences.length === 0 && (
+                            <IssueItem text="AMP and canonical pages are in perfect parity — no differences detected!" type="ok" />
+                          )}
+                        </Card>
+                      ) : (
+                        report.amp.hasAmp && (
+                          <Card title="AMP vs Canonical Comparison" accent="#5a7a96">
+                            <IssueItem text="Comparison not available — AMP URL is same as canonical URL (this IS the AMP page)" type="warn" />
+                          </Card>
+                        )
+                      )}
+
+                      {/* AMP Recommendations */}
+                      {report.amp.recommendations.length > 0 && (
+                        <Card title="AMP Recommendations" accent="#00d4ff">
+                          {report.amp.recommendations.map((r, i) => <IssueItem key={i} text={r} type="warn" />)}
+                        </Card>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useCallback } from 'react';
 import type { SEOReport } from '@/lib/types';
+import type { ReactNode } from 'react';
 
 function scoreColor(s: number) {
   return s >= 80 ? '#00f5a0' : s >= 60 ? '#ffb700' : '#ff4060';
@@ -108,7 +109,7 @@ function Card({
 }: {
   title: string;
   score?: number;
-  children: React.ReactNode;
+  children: ReactNode;
   accent?: string;
 }) {
   const c = score !== undefined ? scoreColor(score) : accent || '#00d4ff';
@@ -1512,7 +1513,7 @@ export default function Page() {
                       />
                       <button
                         onClick={compareCompetitor}
-                        disabled={compLoading || !compUrl.trim()}
+                       disabled={compLoading || !compUrl.trim() || !report}
                         style={{
                           padding: '10px 18px',
                           background: '#00d4ff',

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { SEOReport } from '@/lib/types';
 
 function scoreColor(s: number) {
@@ -21,7 +21,7 @@ function Ring({ score, label, size = 80 }: { score: number; label: string; size?
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
       <div style={{ position: 'relative', width: size, height: size }}>
         <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#162035" strokeWidth="5" />
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--border)" strokeWidth="5" />
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -62,7 +62,7 @@ function Ring({ score, label, size = 80 }: { score: number; label: string; size?
         style={{
           fontFamily: 'IBM Plex Mono',
           fontSize: '0.6rem',
-          color: '#5a7a96',
+          color: 'var(--text2)',
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
           textAlign: 'center',
@@ -93,7 +93,7 @@ function IssueItem({ text, type = 'warn' }: { text: string; type?: 'warn' | 'ok'
       <span style={{ color: colors[type], fontFamily: 'IBM Plex Mono', fontSize: '0.75rem', flexShrink: 0 }}>
         {icons[type]}
       </span>
-      <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: '#cdd8e8', lineHeight: 1.5 }}>
+      <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: 'var(--text)', lineHeight: 1.5 }}>
         {text}
       </span>
     </div>
@@ -111,17 +111,17 @@ function Card({
   children: React.ReactNode;
   accent?: string;
 }) {
-  const c = score !== undefined ? scoreColor(score) : accent || '#00d4ff';
+  const c = score !== undefined ? scoreColor(score) : accent || 'var(--cyan)';
   return (
-    <div style={{ background: '#0c1422', border: '1px solid #162035', borderRadius: 8, overflow: 'hidden' }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '12px 16px',
-          borderBottom: '1px solid #162035',
-          background: '#080e1a',
+          borderBottom: '1px solid var(--border)',
+          background: 'var(--bg2)',
         }}
       >
         <span
@@ -161,8 +161,8 @@ function StatBox({ label, value, color }: { label: string; value: string | numbe
   return (
     <div
       style={{
-        background: '#101b2e',
-        border: '1px solid #162035',
+        background: 'var(--surface2)',
+        border: '1px solid var(--border)',
         borderRadius: 6,
         padding: '12px 14px',
         flex: 1,
@@ -174,7 +174,7 @@ function StatBox({ label, value, color }: { label: string; value: string | numbe
           fontFamily: 'IBM Plex Mono',
           fontSize: '1.4rem',
           fontWeight: 600,
-          color: color || '#00d4ff',
+          color: color || 'var(--cyan)',
           marginBottom: 4,
           lineHeight: 1,
         }}
@@ -185,7 +185,7 @@ function StatBox({ label, value, color }: { label: string; value: string | numbe
         style={{
           fontFamily: 'IBM Plex Mono',
           fontSize: '0.58rem',
-          color: '#5a7a96',
+          color: 'var(--text2)',
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
         }}
@@ -204,7 +204,7 @@ function Check({ label, value, pass }: { label: string; value: string | boolean 
         alignItems: 'center',
         gap: 10,
         padding: '9px 12px',
-        background: '#101b2e',
+        background: 'var(--surface2)',
         borderRadius: 5,
         marginBottom: 6,
       }}
@@ -212,14 +212,14 @@ function Check({ label, value, pass }: { label: string; value: string | boolean 
       <span style={{ color: pass ? '#00f5a0' : '#ff4060', fontFamily: 'IBM Plex Mono', fontSize: '0.8rem', flexShrink: 0 }}>
         {pass ? '✓' : '✗'}
       </span>
-      <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: '#5a7a96', flexShrink: 0, minWidth: 160 }}>
+      <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: 'var(--text2)', flexShrink: 0, minWidth: 160 }}>
         {label}
       </span>
       <span
         style={{
           fontFamily: 'IBM Plex Mono',
           fontSize: '0.7rem',
-          color: '#cdd8e8',
+          color: 'var(--text)',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
@@ -236,7 +236,7 @@ function MeterBar({ value, max = 100, color }: { value: number; max?: number; co
   const pct = Math.min(100, (value / max) * 100);
   const c = color || (pct >= 80 ? '#00f5a0' : pct >= 50 ? '#ffb700' : '#ff4060');
   return (
-    <div style={{ height: 4, background: '#162035', borderRadius: 2, overflow: 'hidden', flex: 1 }}>
+    <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden', flex: 1 }}>
       <div style={{ width: `${pct}%`, height: '100%', background: c, borderRadius: 2, transition: 'width 1s ease' }} />
     </div>
   );
@@ -255,7 +255,7 @@ function CompareRow({ label, a, b, higherBetter = true }: { label: string; a: an
         gap: 12,
         alignItems: 'center',
         padding: '8px 0',
-        borderBottom: '1px solid #162035',
+        borderBottom: '1px solid var(--border)',
       }}
     >
       <div
@@ -263,7 +263,7 @@ function CompareRow({ label, a, b, higherBetter = true }: { label: string; a: an
           textAlign: 'right',
           fontFamily: 'IBM Plex Mono',
           fontSize: '0.78rem',
-          color: tie ? '#cdd8e8' : aWins ? '#00f5a0' : '#ff4060',
+          color: tie ? 'var(--text)' : aWins ? '#00f5a0' : '#ff4060',
           fontWeight: aWins && !tie ? 600 : 400,
         }}
       >
@@ -273,7 +273,7 @@ function CompareRow({ label, a, b, higherBetter = true }: { label: string; a: an
         style={{
           fontFamily: 'IBM Plex Mono',
           fontSize: '0.6rem',
-          color: '#5a7a96',
+          color: 'var(--text2)',
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
           textAlign: 'center',
@@ -287,7 +287,7 @@ function CompareRow({ label, a, b, higherBetter = true }: { label: string; a: an
           textAlign: 'left',
           fontFamily: 'IBM Plex Mono',
           fontSize: '0.78rem',
-          color: tie ? '#cdd8e8' : !aWins ? '#00f5a0' : '#ff4060',
+          color: tie ? 'var(--text)' : !aWins ? '#00f5a0' : '#ff4060',
           fontWeight: !aWins && !tie ? 600 : 400,
         }}
       >
@@ -323,6 +323,11 @@ export default function Page() {
   const [compUrl, setCompUrl] = useState('');
   const [compData, setCompData] = useState<any>(null);
   const [compLoading, setCompLoading] = useState(false);
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', !isDark);
+  }, [isDark]);
 
   const analyze = useCallback(async () => {
     if (!url.trim()) return;
@@ -395,22 +400,22 @@ export default function Page() {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '20px 0',
-            borderBottom: '1px solid #162035',
+            borderBottom: '1px solid var(--border)',
             marginBottom: 40,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: '1.3rem', color: '#00d4ff' }}>◈</span>
-            <span style={{ fontFamily: 'IBM Plex Mono', fontWeight: 600, fontSize: '1rem', color: '#cdd8e8', letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '1.3rem', color: 'var(--cyan)' }}>◈</span>
+            <span style={{ fontFamily: 'IBM Plex Mono', fontWeight: 600, fontSize: '1rem', color: 'var(--text)', letterSpacing: '0.05em' }}>
               DEEPSEO
             </span>
             <span
               style={{
                 fontFamily: 'IBM Plex Mono',
                 fontSize: '0.6rem',
-                color: '#2a4560',
-                background: '#101b2e',
-                border: '1px solid #162035',
+                color: 'var(--text3)',
+                background: 'var(--surface2)',
+                border: '1px solid var(--border)',
                 padding: '2px 6px',
                 borderRadius: 3,
               }}
@@ -418,9 +423,52 @@ export default function Page() {
               v3.0
             </span>
           </div>
-          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#2a4560', letterSpacing: '0.1em' }}>
-            COMPLETE SEO ANALYSIS SUITE
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--text3)', letterSpacing: '0.1em' }}>
+              COMPLETE SEO ANALYSIS SUITE
+            </span>
+
+            {/* Dark / Light toggle */}
+            <button
+              onClick={() => setIsDark(d => !d)}
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '5px 10px',
+                background: isDark ? 'var(--surface2)' : '#e4eaf2',
+                border: `1px solid ${isDark ? 'var(--border2)' : '#d0dbe8'}`,
+                borderRadius: 20,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                flexShrink: 0,
+              }}
+            >
+              {/* Track */}
+              <div style={{
+                position: 'relative', width: 32, height: 18,
+                background: isDark ? 'var(--border2)' : '#b8c8da',
+                borderRadius: 10, transition: 'background 0.2s',
+              }}>
+                {/* Thumb */}
+                <div style={{
+                  position: 'absolute', top: 2,
+                  left: isDark ? 2 : 14,
+                  width: 14, height: 14,
+                  borderRadius: '50%',
+                  background: isDark ? 'var(--cyan)' : '#0070cc',
+                  transition: 'left 0.2s ease, background 0.2s',
+                  boxShadow: isDark ? '0 0 6px rgba(0,212,255,0.6)' : 'none',
+                }} />
+              </div>
+              <span style={{
+                fontFamily: 'IBM Plex Mono', fontSize: '0.62rem',
+                color: isDark ? 'var(--text2)' : '#4a6070',
+                letterSpacing: '0.05em', userSelect: 'none',
+              }}>
+                {isDark ? '🌙' : '☀️'}
+              </span>
+            </button>
+          </div>
         </header>
 
         <section style={{ textAlign: 'center', marginBottom: 50 }}>
@@ -434,11 +482,11 @@ export default function Page() {
               marginBottom: 12,
             }}
           >
-            <span style={{ color: '#2a4560' }}>Deep</span>
-            <span style={{ color: '#00d4ff', textShadow: '0 0 40px rgba(0,212,255,0.5)' }}> SEO</span>
-            <span style={{ color: '#cdd8e8' }}> Analysis</span>
+            <span style={{ color: 'var(--text3)' }}>Deep</span>
+            <span style={{ color: 'var(--cyan)', textShadow: '0 0 40px rgba(0,212,255,0.5)' }}> SEO</span>
+            <span style={{ color: 'var(--text)' }}> Analysis</span>
           </h1>
-          <p style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.8rem', color: '#5a7a96', marginBottom: 32 }}>
+          <p style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.8rem', color: 'var(--text2)', marginBottom: 32 }}>
             On-page · Technical · Crawl · Security · Speed · Rendering · Social · AMP · Intelligence · Competitor
           </p>
 
@@ -450,7 +498,7 @@ export default function Page() {
                   left: 14,
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: '#2a4560',
+                  color: 'var(--text3)',
                   fontFamily: 'IBM Plex Mono',
                   fontSize: '0.85rem',
                   pointerEvents: 'none',
@@ -467,21 +515,21 @@ export default function Page() {
                 style={{
                   width: '100%',
                   padding: '13px 14px 13px 36px',
-                  background: '#080e1a',
-                  border: '1px solid #1e2f4a',
+                  background: 'var(--bg2)',
+                  border: '1px solid var(--border2)',
                   borderRadius: 6,
-                  color: '#cdd8e8',
+                  color: 'var(--text)',
                   fontFamily: 'IBM Plex Mono',
                   fontSize: '0.88rem',
                   outline: 'none',
                   transition: 'border-color 0.2s, box-shadow 0.2s',
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#00d4ff';
+                  e.currentTarget.style.borderColor = 'var(--cyan)';
                   e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0,212,255,0.1)';
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#1e2f4a';
+                  e.currentTarget.style.borderColor = 'var(--border2)';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               />
@@ -491,8 +539,8 @@ export default function Page() {
               disabled={loading || !url.trim()}
               style={{
                 padding: '13px 24px',
-                background: loading ? '#101b2e' : '#00d4ff',
-                color: loading ? '#5a7a96' : '#04080f',
+                background: loading ? 'var(--surface2)' : 'var(--cyan)',
+                color: loading ? 'var(--text2)' : 'var(--bg)',
                 border: 'none',
                 borderRadius: 6,
                 fontFamily: 'Barlow',
@@ -512,7 +560,7 @@ export default function Page() {
                     width: 14,
                     height: 14,
                     border: '2px solid #5a7a96',
-                    borderTopColor: '#00d4ff',
+                    borderTopColor: 'var(--cyan)',
                     borderRadius: '50%',
                     animation: 'spin 0.8s linear infinite',
                     display: 'inline-block',
@@ -529,8 +577,8 @@ export default function Page() {
           <div style={{ animation: 'fadeUp 0.4s ease' }}>
             <div
               style={{
-                background: '#080e1a',
-                border: '1px solid #162035',
+                background: 'var(--bg2)',
+                border: '1px solid var(--border)',
                 borderRadius: 10,
                 padding: '24px 28px',
                 marginBottom: 20,
@@ -545,17 +593,17 @@ export default function Page() {
                   <div style={{ fontFamily: 'Barlow', fontWeight: 900, fontSize: '4.5rem', lineHeight: 1, color: scoreColor(report.overallScore) }}>
                     {grade(report.overallScore)}
                   </div>
-                  <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                     Grade
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontFamily: 'Barlow', fontWeight: 800, fontSize: '2.5rem', lineHeight: 1, color: '#cdd8e8' }}>
+                  <div style={{ fontFamily: 'Barlow', fontWeight: 800, fontSize: '2.5rem', lineHeight: 1, color: 'var(--text)' }}>
                     {report.overallScore}
-                    <span style={{ fontSize: '1rem', color: '#2a4560' }}>/100</span>
+                    <span style={{ fontSize: '1rem', color: 'var(--text3)' }}>/100</span>
                   </div>
-                  <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: '#5a7a96', marginTop: 4 }}>{report.url}</div>
-                  <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.58rem', color: '#2a4560', marginTop: 2 }}>
+                  <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: 'var(--text2)', marginTop: 4 }}>{report.url}</div>
+                  <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.58rem', color: 'var(--text3)', marginTop: 2 }}>
                     {new Date(report.timestamp).toLocaleString()}
                   </div>
                 </div>
@@ -584,10 +632,10 @@ export default function Page() {
                   onClick={() => setTab(t.id)}
                   style={{
                     padding: '8px 16px',
-                    background: tab === t.id ? 'rgba(0,212,255,0.1)' : 'transparent',
-                    border: tab === t.id ? '1px solid rgba(0,212,255,0.3)' : '1px solid transparent',
+                    background: tab === t.id ? 'var(--cyan-dim)' : 'transparent',
+                    border: tab === t.id ? '1px solid var(--cyan-glow)' : '1px solid transparent',
                     borderRadius: 5,
-                    color: tab === t.id ? '#00d4ff' : '#5a7a96',
+                    color: tab === t.id ? 'var(--cyan)' : 'var(--text2)',
                     fontFamily: 'IBM Plex Mono',
                     fontSize: '0.7rem',
                     fontWeight: tab === t.id ? 600 : 400,
@@ -622,7 +670,7 @@ export default function Page() {
                     <StatBox
                       label="Canonical→AMP"
                       value={report.amp?.hasAmp ? (derivedCanonicalToAmp(report) ? 'Yes' : 'No') : '—'}
-                      color={report.amp?.hasAmp ? (derivedCanonicalToAmp(report) ? '#00f5a0' : '#ff4060') : '#5a7a96'}
+                      color={report.amp?.hasAmp ? (derivedCanonicalToAmp(report) ? '#00f5a0' : '#ff4060') : 'var(--text2)'}
                     />
                   </div>
 
@@ -674,13 +722,13 @@ export default function Page() {
                     <Card title="Top Keywords">
                       {report.onPage.keywords.topKeywords.slice(0, 10).map((kw) => (
                         <div key={kw.word} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.75rem', color: '#cdd8e8', minWidth: 100 }}>{kw.word}</span>
-                          <MeterBar value={kw.density} max={5} color={kw.density > 3 ? '#ff4060' : '#00d4ff'} />
+                          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.75rem', color: 'var(--text)', minWidth: 100 }}>{kw.word}</span>
+                          <MeterBar value={kw.density} max={5} color={kw.density > 3 ? '#ff4060' : 'var(--cyan)'} />
                           <span
                             style={{
                               fontFamily: 'IBM Plex Mono',
                               fontSize: '0.65rem',
-                              color: kw.density > 3 ? '#ff4060' : '#5a7a96',
+                              color: kw.density > 3 ? '#ff4060' : 'var(--text2)',
                               minWidth: 45,
                               textAlign: 'right',
                             }}
@@ -702,8 +750,8 @@ export default function Page() {
                         style={{
                           fontFamily: 'IBM Plex Mono',
                           fontSize: '0.8rem',
-                          color: '#cdd8e8',
-                          background: '#101b2e',
+                          color: 'var(--text)',
+                          background: 'var(--surface2)',
                           padding: 12,
                           borderRadius: 5,
                           marginBottom: 10,
@@ -715,7 +763,7 @@ export default function Page() {
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                         <MeterBar value={report.onPage.title.length} max={60} />
-                        <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#5a7a96', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--text2)', whiteSpace: 'nowrap' }}>
                           {report.onPage.title.length}/60
                         </span>
                       </div>
@@ -730,8 +778,8 @@ export default function Page() {
                         style={{
                           fontFamily: 'IBM Plex Mono',
                           fontSize: '0.78rem',
-                          color: '#cdd8e8',
-                          background: '#101b2e',
+                          color: 'var(--text)',
+                          background: 'var(--surface2)',
                           padding: 12,
                           borderRadius: 5,
                           marginBottom: 10,
@@ -742,7 +790,7 @@ export default function Page() {
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                         <MeterBar value={report.onPage.metaDescription.length} max={160} />
-                        <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#5a7a96', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--text2)', whiteSpace: 'nowrap' }}>
                           {report.onPage.metaDescription.length}/160
                         </span>
                       </div>
@@ -763,8 +811,8 @@ export default function Page() {
                                 fontFamily: 'IBM Plex Mono',
                                 fontSize: '0.62rem',
                                 fontWeight: 600,
-                                color: '#00d4ff',
-                                background: 'rgba(0,212,255,0.08)',
+                                color: 'var(--cyan)',
+                                background: 'var(--cyan-dim)',
                                 border: '1px solid rgba(0,212,255,0.2)',
                                 padding: '1px 6px',
                                 borderRadius: 3,
@@ -772,7 +820,7 @@ export default function Page() {
                             >
                               {tagName as string}
                             </span>
-                            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560' }}>{(items as string[]).length} found</span>
+                            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)' }}>{(items as string[]).length} found</span>
                           </div>
                           {(items as string[]).slice(0, 3).map((h, i) => (
                             <div
@@ -780,8 +828,8 @@ export default function Page() {
                               style={{
                                 fontFamily: 'IBM Plex Mono',
                                 fontSize: '0.72rem',
-                                color: '#5a7a96',
-                                background: '#101b2e',
+                                color: 'var(--text2)',
+                                background: 'var(--surface2)',
                                 padding: '5px 8px',
                                 borderRadius: 4,
                                 marginBottom: 3,
@@ -820,14 +868,14 @@ export default function Page() {
                   <Card title="Keyword Density (Top 20)">
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 6 }}>
                       {report.onPage.keywords.topKeywords.map((kw) => (
-                        <div key={kw.word} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #162035' }}>
-                          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: '#cdd8e8', minWidth: 80 }}>{kw.word}</span>
+                        <div key={kw.word} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
+                          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: 'var(--text)', minWidth: 80 }}>{kw.word}</span>
                           <MeterBar value={kw.density} max={4} />
                           <span
                             style={{
                               fontFamily: 'IBM Plex Mono',
                               fontSize: '0.62rem',
-                              color: kw.density > 3 ? '#ff4060' : '#5a7a96',
+                              color: kw.density > 3 ? '#ff4060' : 'var(--text2)',
                               minWidth: 40,
                               textAlign: 'right',
                             }}
@@ -873,8 +921,8 @@ export default function Page() {
                         style={{
                           fontFamily: 'IBM Plex Mono',
                           fontSize: '0.72rem',
-                          color: '#5a7a96',
-                          background: '#080e1a',
+                          color: 'var(--text2)',
+                          background: 'var(--bg2)',
                           padding: 12,
                           borderRadius: 5,
                           overflow: 'auto',
@@ -919,12 +967,12 @@ export default function Page() {
                   <Card title={`Internal Links (${report.crawl.internalLinks.length} found)`}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 320, overflow: 'auto' }}>
                       {report.crawl.internalLinks.slice(0, 25).map((link, i) => (
-                        <div key={i} style={{ display: 'flex', gap: 10, padding: '6px 8px', background: '#101b2e', borderRadius: 4, alignItems: 'center' }}>
+                        <div key={i} style={{ display: 'flex', gap: 10, padding: '6px 8px', background: 'var(--surface2)', borderRadius: 4, alignItems: 'center' }}>
                           <span
                             style={{
                               fontFamily: 'IBM Plex Mono',
                               fontSize: '0.65rem',
-                              color: '#00d4ff',
+                              color: 'var(--cyan)',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap',
@@ -933,7 +981,7 @@ export default function Page() {
                           >
                             {link.href}
                           </span>
-                          {link.text && <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: '#5a7a96', whiteSpace: 'nowrap' }}>{link.text.slice(0, 30)}</span>}
+                          {link.text && <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: 'var(--text2)', whiteSpace: 'nowrap' }}>{link.text.slice(0, 30)}</span>}
                           {link.rel && (
                             <span
                               style={{
@@ -983,8 +1031,8 @@ export default function Page() {
                 <div style={{ display: 'grid', gap: 16 }}>
                   {psLoading && (
                     <Card title="Google PageSpeed — Loading">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 20, color: '#5a7a96', fontFamily: 'IBM Plex Mono', fontSize: '0.78rem' }}>
-                        <span style={{ width: 16, height: 16, border: '2px solid #162035', borderTopColor: '#00d4ff', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 20, color: 'var(--text2)', fontFamily: 'IBM Plex Mono', fontSize: '0.78rem' }}>
+                        <span style={{ width: 16, height: 16, border: '2px solid #162035', borderTopColor: 'var(--cyan)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
                         Fetching Google PageSpeed Insights for mobile & desktop…
                       </div>
                     </Card>
@@ -997,7 +1045,7 @@ export default function Page() {
                         return (
                           <div key={strategy}>
                             <Card title={`PageSpeed — ${strategy.charAt(0).toUpperCase() + strategy.slice(1)}`}>
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, justifyContent: 'center', marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid #162035' }}>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, justifyContent: 'center', marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid var(--border)' }}>
                                 {[
                                   { label: 'Performance', value: d.performance },
                                   { label: 'Accessibility', value: d.accessibility },
@@ -1016,25 +1064,25 @@ export default function Page() {
                                   { label: 'TTI', value: d.tti, desc: 'Time to Interactive' },
                                   { label: 'Speed Index', value: d.speedIndex, desc: 'Speed Index' },
                                 ].map((v) => (
-                                  <div key={v.label} style={{ background: '#101b2e', border: '1px solid #162035', borderRadius: 6, padding: '12px 14px' }}>
-                                    <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '1.1rem', fontWeight: 500, color: '#00d4ff', marginBottom: 3 }}>{v.value}</div>
-                                    <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase' }}>{v.desc}</div>
+                                  <div key={v.label} style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 6, padding: '12px 14px' }}>
+                                    <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '1.1rem', fontWeight: 500, color: 'var(--cyan)', marginBottom: 3 }}>{v.value}</div>
+                                    <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', textTransform: 'uppercase' }}>{v.desc}</div>
                                   </div>
                                 ))}
                               </div>
                               {d.opportunities?.length > 0 && (
                                 <div>
-                                  <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+                                  <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
                                     Top Opportunities
                                   </div>
                                   {d.opportunities.map((opp: any, i: number) => (
-                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #162035' }}>
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--border)' }}>
                                       <div style={{ width: 36, height: 36, borderRadius: '50%', background: scoreBg(opp.score), border: `2px solid ${scoreColor(opp.score)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                         <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: scoreColor(opp.score), fontWeight: 600 }}>{opp.score}</span>
                                       </div>
                                       <div>
-                                        <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: '#cdd8e8' }}>{opp.title}</div>
-                                        {opp.displayValue && <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: '#5a7a96' }}>{opp.displayValue}</div>}
+                                        <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: 'var(--text)' }}>{opp.title}</div>
+                                        {opp.displayValue && <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: 'var(--text2)' }}>{opp.displayValue}</div>}
                                       </div>
                                     </div>
                                   ))}
@@ -1049,7 +1097,7 @@ export default function Page() {
                   {psData?.error && <IssueItem text={`PageSpeed error: ${psData.error}`} type="error" />}
                   {!psLoading && !psData && (
                     <Card title="PageSpeed">
-                      <p style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.75rem', color: '#5a7a96' }}>PageSpeed data loading in background…</p>
+                      <p style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.75rem', color: 'var(--text2)' }}>PageSpeed data loading in background…</p>
                     </Card>
                   )}
                 </div>
@@ -1160,10 +1208,10 @@ export default function Page() {
                       <div style={{ fontFamily: 'Barlow', fontWeight: 800, fontSize: '1.3rem', color: report.amp.hasAmp ? '#00f5a0' : '#ffb700', marginBottom: 4 }}>
                         {report.amp.isAmpPage ? 'This IS an AMP Page' : report.amp.hasAmp ? 'AMP Version Detected' : 'No AMP Version Found'}
                       </div>
-                      <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: '#5a7a96' }}>
+                      <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: 'var(--text2)' }}>
                         {report.amp.ampUrl ? `AMP URL: ${report.amp.ampUrl}` : 'No amphtml link found on this page'}
                       </div>
-                      <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: '#5a7a96', marginTop: 6 }}>
+                      <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: 'var(--text2)', marginTop: 6 }}>
                         Canonical→AMP: {derivedCanonicalToAmp(report) ? 'Yes' : 'No'}
                       </div>
                     </div>
@@ -1184,8 +1232,8 @@ export default function Page() {
                       {report.amp.recommendations.map((r, i) => (
                         <IssueItem key={i} text={r} type="warn" />
                       ))}
-                      <div style={{ marginTop: 16, padding: 14, background: '#080e1a', borderRadius: 6, fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: '#5a7a96', lineHeight: 1.8 }}>
-                        <div style={{ color: '#00d4ff', marginBottom: 8, fontWeight: 600 }}>Quick Start — Add AMP to your page:</div>
+                      <div style={{ marginTop: 16, padding: 14, background: 'var(--bg2)', borderRadius: 6, fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: 'var(--text2)', lineHeight: 1.8 }}>
+                        <div style={{ color: 'var(--cyan)', marginBottom: 8, fontWeight: 600 }}>Quick Start — Add AMP to your page:</div>
                         {'1. Create /amp/ version of each page\n2. Add ⚡ attribute to <html amp lang="en">\n3. Include AMP boilerplate + runtime script\n4. Add <link rel="canonical"> pointing to original\n5. On original page add <link rel="amphtml" href="/amp/">'
                           .split('\n')
                           .map((line, i2) => (
@@ -1250,7 +1298,7 @@ export default function Page() {
                             <>
                               {report.amp.technical.ampComponents.length > 0 && (
                                 <div style={{ marginBottom: 12 }}>
-                                  <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+                                  <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
                                     In-page Components
                                   </div>
                                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -1260,8 +1308,8 @@ export default function Page() {
                                         style={{
                                           fontFamily: 'IBM Plex Mono',
                                           fontSize: '0.65rem',
-                                          color: '#00d4ff',
-                                          background: 'rgba(0,212,255,0.08)',
+                                          color: 'var(--cyan)',
+                                          background: 'var(--cyan-dim)',
                                           border: '1px solid rgba(0,212,255,0.2)',
                                           padding: '2px 8px',
                                           borderRadius: 3,
@@ -1275,7 +1323,7 @@ export default function Page() {
                               )}
                               {report.amp.technical.ampExtensions.length > 0 && (
                                 <div>
-                                  <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+                                  <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
                                     Extension Scripts
                                   </div>
                                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -1309,12 +1357,12 @@ export default function Page() {
                             <StatBox label="<img> (bad)" value={report.amp.content.regularImgCount} color={report.amp.content.regularImgCount > 0 ? '#ff4060' : '#00f5a0'} />
                             <StatBox label="amp-video" value={report.amp.content.ampVideoCount} color="#00d4ff" />
                             <StatBox label="amp-iframe" value={report.amp.content.ampIframeCount} />
-                            <StatBox label="Has Ads" value={report.amp.content.hasAd ? 'Yes' : 'No'} color={report.amp.content.hasAd ? '#ffb700' : '#5a7a96'} />
+                            <StatBox label="Has Ads" value={report.amp.content.hasAd ? 'Yes' : 'No'} color={report.amp.content.hasAd ? '#ffb700' : 'var(--text2)'} />
                           </div>
 
                           {report.amp.content.hasSocialEmbed && (
                             <div style={{ marginBottom: 8 }}>
-                              <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+                              <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
                                 Social Embeds
                               </div>
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
@@ -1369,10 +1417,10 @@ export default function Page() {
                         {!report.amp.performance.issues.length && <IssueItem text="AMP performance optimizations look good!" type="ok" />}
 
                         <div style={{ marginTop: 12 }}>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
                             CSS Budget ({report.amp.performance.customCssKb}KB / 75KB limit)
                           </div>
-                          <div style={{ height: 6, background: '#162035', borderRadius: 3, overflow: 'hidden' }}>
+                          <div style={{ height: 6, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
                             <div
                               style={{
                                 height: '100%',
@@ -1389,14 +1437,14 @@ export default function Page() {
                       {report.amp.comparison ? (
                         <Card title="⚡ AMP vs Canonical — Content Parity" accent="#00d4ff">
                           <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
-                            <div style={{ flex: 1, background: '#080e1a', borderRadius: 6, padding: 14 }}>
-                              <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+                            <div style={{ flex: 1, background: 'var(--bg2)', borderRadius: 6, padding: 14 }}>
+                              <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
                                 Content Parity
                               </div>
                               <div style={{ fontFamily: 'Barlow', fontWeight: 800, fontSize: '2rem', color: scoreColor(report.amp.comparison.contentParity) }}>
                                 {report.amp.comparison.contentParity}%
                               </div>
-                              <div style={{ height: 4, background: '#162035', borderRadius: 2, marginTop: 8 }}>
+                              <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, marginTop: 8 }}>
                                 <div
                                   style={{
                                     height: '100%',
@@ -1408,14 +1456,14 @@ export default function Page() {
                                 />
                               </div>
                             </div>
-                            <div style={{ flex: 1, background: '#080e1a', borderRadius: 6, padding: 14 }}>
-                              <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+                            <div style={{ flex: 1, background: 'var(--bg2)', borderRadius: 6, padding: 14 }}>
+                              <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
                                 SEO Equivalence
                               </div>
                               <div style={{ fontFamily: 'Barlow', fontWeight: 800, fontSize: '2rem', color: scoreColor(report.amp.comparison.seoEquivalence) }}>
                                 {report.amp.comparison.seoEquivalence}%
                               </div>
-                              <div style={{ height: 4, background: '#162035', borderRadius: 2, marginTop: 8 }}>
+                              <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, marginTop: 8 }}>
                                 <div
                                   style={{
                                     height: '100%',
@@ -1430,7 +1478,7 @@ export default function Page() {
                           </div>
 
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 8, marginBottom: 16 }}>
-                            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#00d4ff', fontWeight: 600, textAlign: 'right', textTransform: 'uppercase' }}>
+                            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--cyan)', fontWeight: 600, textAlign: 'right', textTransform: 'uppercase' }}>
                               CANONICAL
                             </div>
                             <div />
@@ -1452,7 +1500,7 @@ export default function Page() {
 
                           {report.amp.comparison.differences.length > 0 && (
                             <div style={{ marginTop: 16 }}>
-                              <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+                              <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
                                 Detected Differences
                               </div>
                               {report.amp.comparison.differences.map((diff, i) => (
@@ -1521,17 +1569,17 @@ export default function Page() {
                         const pct = Math.min(100, Math.round((m.px / m.max) * 100));
                         const barColor = m.risk === 'low' ? '#00f5a0' : m.risk === 'medium' ? '#ffb700' : '#ff4060';
                         return (
-                          <div key={m.label} style={{ background: '#101b2e', borderRadius: 6, padding: '12px 14px' }}>
+                          <div key={m.label} style={{ background: 'var(--surface2)', borderRadius: 6, padding: '12px 14px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#5a7a96', textTransform: 'uppercase' }}>{m.label}</span>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--text2)', textTransform: 'uppercase' }}>{m.label}</span>
                               <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: barColor, fontWeight: 600 }}>
                                 {m.risk.toUpperCase()} RISK
                               </span>
                             </div>
-                            <div style={{ height: 5, background: '#162035', borderRadius: 3, marginBottom: 6, overflow: 'hidden' }}>
+                            <div style={{ height: 5, background: 'var(--border)', borderRadius: 3, marginBottom: 6, overflow: 'hidden' }}>
                               <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 3, transition: 'width 1s ease' }} />
                             </div>
-                            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: '#2a4560' }}>
+                            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: 'var(--text3)' }}>
                               ~{m.px}px used of {m.max}px ({pct}%)
                             </div>
                           </div>
@@ -1545,23 +1593,23 @@ export default function Page() {
 
                     {/* Search Intent */}
                     <Card title="🎯 Search Intent Detection" score={report.intelligence.intent.mismatchRisk === 'low' ? 90 : report.intelligence.intent.mismatchRisk === 'medium' ? 65 : 40}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16, padding: '12px 14px', background: '#101b2e', borderRadius: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16, padding: '12px 14px', background: 'var(--surface2)', borderRadius: 6 }}>
                         <div style={{ textAlign: 'center' }}>
-                          <div style={{ fontFamily: 'Barlow', fontWeight: 900, fontSize: '1.5rem', textTransform: 'uppercase', color: '#00d4ff', lineHeight: 1 }}>
+                          <div style={{ fontFamily: 'Barlow', fontWeight: 900, fontSize: '1.5rem', textTransform: 'uppercase', color: 'var(--cyan)', lineHeight: 1 }}>
                             {report.intelligence.intent.intent}
                           </div>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>
                             Detected Intent
                           </div>
                         </div>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#5a7a96', marginBottom: 4 }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--text2)', marginBottom: 4 }}>
                             Mismatch Risk:
                             <span style={{ marginLeft: 6, color: report.intelligence.intent.mismatchRisk === 'low' ? '#00f5a0' : report.intelligence.intent.mismatchRisk === 'medium' ? '#ffb700' : '#ff4060', fontWeight: 600 }}>
                               {report.intelligence.intent.mismatchRisk.toUpperCase()}
                             </span>
                           </div>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', lineHeight: 1.6 }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', lineHeight: 1.6 }}>
                             {report.intelligence.intent.mismatchRisk === 'low'
                               ? 'Content aligns well with detected intent signals.'
                               : report.intelligence.intent.mismatchRisk === 'medium'
@@ -1575,11 +1623,11 @@ export default function Page() {
                         const isTop = type === report.intelligence.intent.intent;
                         return (
                           <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: isTop ? '#00d4ff' : '#5a7a96', minWidth: 110, textTransform: 'capitalize', fontWeight: isTop ? 600 : 400 }}>{type}</span>
-                            <div style={{ flex: 1, height: 4, background: '#162035', borderRadius: 2, overflow: 'hidden' }}>
-                              <div style={{ height: '100%', width: `${Math.min(100, val * 20)}%`, background: isTop ? '#00d4ff' : '#1e2f4a', borderRadius: 2, transition: 'width 1s ease' }} />
+                            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: isTop ? 'var(--cyan)' : 'var(--text2)', minWidth: 110, textTransform: 'capitalize', fontWeight: isTop ? 600 : 400 }}>{type}</span>
+                            <div style={{ flex: 1, height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
+                              <div style={{ height: '100%', width: `${Math.min(100, val * 20)}%`, background: isTop ? 'var(--cyan)' : 'var(--border2)', borderRadius: 2, transition: 'width 1s ease' }} />
                             </div>
-                            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: '#2a4560', minWidth: 20, textAlign: 'right' }}>{val}</span>
+                            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: 'var(--text3)', minWidth: 20, textAlign: 'right' }}>{val}</span>
                           </div>
                         );
                       })}
@@ -1600,9 +1648,9 @@ export default function Page() {
                           { label: 'Review content', pass: report.intelligence.eeat.signals.hasReviews },
                           { label: `Authoritative citations (${report.intelligence.eeat.signals.citationsCount})`, pass: report.intelligence.eeat.signals.citationsCount > 0 },
                         ].map(s => (
-                          <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', background: '#101b2e', borderRadius: 4, marginBottom: 4 }}>
+                          <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', background: 'var(--surface2)', borderRadius: 4, marginBottom: 4 }}>
                             <span style={{ color: s.pass ? '#00f5a0' : '#ff4060', fontFamily: 'IBM Plex Mono', fontSize: '0.75rem', flexShrink: 0 }}>{s.pass ? '✓' : '✗'}</span>
-                            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: s.pass ? '#cdd8e8' : '#5a7a96' }}>{s.label}</span>
+                            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: s.pass ? 'var(--text)' : 'var(--text2)' }}>{s.label}</span>
                           </div>
                         ))}
                       </div>
@@ -1615,26 +1663,26 @@ export default function Page() {
                     {/* Entity Coverage */}
                     <Card title="🏷 Named Entity Coverage" score={report.intelligence.entities.coverageScore}>
                       <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-                        <div style={{ flex: 1, background: '#101b2e', borderRadius: 6, padding: '10px 12px', textAlign: 'center' }}>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '1.4rem', fontWeight: 600, color: '#00d4ff', lineHeight: 1 }}>{report.intelligence.entities.uniqueCount}</div>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: '#2a4560', textTransform: 'uppercase', marginTop: 3 }}>Unique Entities</div>
+                        <div style={{ flex: 1, background: 'var(--surface2)', borderRadius: 6, padding: '10px 12px', textAlign: 'center' }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '1.4rem', fontWeight: 600, color: 'var(--cyan)', lineHeight: 1 }}>{report.intelligence.entities.uniqueCount}</div>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: 'var(--text3)', textTransform: 'uppercase', marginTop: 3 }}>Unique Entities</div>
                         </div>
-                        <div style={{ flex: 1, background: '#101b2e', borderRadius: 6, padding: '10px 12px', textAlign: 'center' }}>
+                        <div style={{ flex: 1, background: 'var(--surface2)', borderRadius: 6, padding: '10px 12px', textAlign: 'center' }}>
                           <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '1.4rem', fontWeight: 600, color: report.intelligence.entities.coverageScore >= 75 ? '#00f5a0' : '#ffb700', lineHeight: 1 }}>{report.intelligence.entities.coverageScore}</div>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: '#2a4560', textTransform: 'uppercase', marginTop: 3 }}>Coverage Score</div>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: 'var(--text3)', textTransform: 'uppercase', marginTop: 3 }}>Coverage Score</div>
                         </div>
                       </div>
                       {report.intelligence.entities.hints.map((h, i) => <IssueItem key={i} text={h} type="warn" />)}
                       {report.intelligence.entities.topEntities.length > 0 && (
                         <div style={{ marginTop: 12 }}>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Top Entities Detected</div>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Top Entities Detected</div>
                           {report.intelligence.entities.topEntities.slice(0, 10).map((e, i) => (
-                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid #162035' }}>
-                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: '#cdd8e8', flex: 1 }}>{e.name}</span>
-                              <div style={{ width: 60, height: 3, background: '#162035', borderRadius: 2, overflow: 'hidden' }}>
-                                <div style={{ height: '100%', width: `${Math.min(100, e.count * 10)}%`, background: '#00d4ff', borderRadius: 2 }} />
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid var(--border)' }}>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: 'var(--text)', flex: 1 }}>{e.name}</span>
+                              <div style={{ width: 60, height: 3, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
+                                <div style={{ height: '100%', width: `${Math.min(100, e.count * 10)}%`, background: 'var(--cyan)', borderRadius: 2 }} />
                               </div>
-                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: '#5a7a96', minWidth: 24, textAlign: 'right' }}>{e.count}x</span>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: 'var(--text2)', minWidth: 24, textAlign: 'right' }}>{e.count}x</span>
                             </div>
                           ))}
                         </div>
@@ -1645,41 +1693,41 @@ export default function Page() {
                     <Card title="🔗 Internal Link Quality" score={report.intelligence.linkQuality.score}>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
                         {[
-                          { label: 'Total Internal', value: report.intelligence.linkQuality.totals.total, color: '#00d4ff' },
+                          { label: 'Total Internal', value: report.intelligence.linkQuality.totals.total, color: 'var(--cyan)' },
                           { label: 'Contextual', value: report.intelligence.linkQuality.totals.contextual, color: '#00f5a0' },
                           { label: 'Nav/Footer', value: report.intelligence.linkQuality.totals.navFooter, color: '#ffb700' },
                         ].map(s => (
-                          <div key={s.label} style={{ flex: 1, minWidth: 80, background: '#101b2e', border: '1px solid #162035', borderRadius: 6, padding: '10px 12px' }}>
+                          <div key={s.label} style={{ flex: 1, minWidth: 80, background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 6, padding: '10px 12px' }}>
                             <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '1.3rem', fontWeight: 600, color: s.color, lineHeight: 1, marginBottom: 3 }}>{s.value}</div>
-                            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: '#2a4560', textTransform: 'uppercase' }}>{s.label}</div>
+                            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.55rem', color: 'var(--text3)', textTransform: 'uppercase' }}>{s.label}</div>
                           </div>
                         ))}
                       </div>
                       <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-                        <div style={{ flex: 1, background: '#101b2e', borderRadius: 5, padding: '8px 10px' }}>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', marginBottom: 4 }}>Anchor Diversity</div>
-                          <div style={{ height: 4, background: '#162035', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ flex: 1, background: 'var(--surface2)', borderRadius: 5, padding: '8px 10px' }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', textTransform: 'uppercase', marginBottom: 4 }}>Anchor Diversity</div>
+                          <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${Math.min(100, report.intelligence.linkQuality.anchorDiversity * 100)}%`, background: report.intelligence.linkQuality.anchorDiversity > 0.5 ? '#00f5a0' : '#ffb700', borderRadius: 2, transition: 'width 1s ease' }} />
                           </div>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#5a7a96', marginTop: 3 }}>{Math.round(report.intelligence.linkQuality.anchorDiversity * 100)}%</div>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text2)', marginTop: 3 }}>{Math.round(report.intelligence.linkQuality.anchorDiversity * 100)}%</div>
                         </div>
-                        <div style={{ flex: 1, background: '#101b2e', borderRadius: 5, padding: '8px 10px' }}>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', marginBottom: 4 }}>Generic Anchor Ratio</div>
-                          <div style={{ height: 4, background: '#162035', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ flex: 1, background: 'var(--surface2)', borderRadius: 5, padding: '8px 10px' }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', textTransform: 'uppercase', marginBottom: 4 }}>Generic Anchor Ratio</div>
+                          <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${Math.min(100, report.intelligence.linkQuality.genericAnchorRatio)}%`, background: report.intelligence.linkQuality.genericAnchorRatio > 18 ? '#ff4060' : '#00f5a0', borderRadius: 2, transition: 'width 1s ease' }} />
                           </div>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#5a7a96', marginTop: 3 }}>{report.intelligence.linkQuality.genericAnchorRatio}%</div>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text2)', marginTop: 3 }}>{report.intelligence.linkQuality.genericAnchorRatio}%</div>
                         </div>
                       </div>
                       {report.intelligence.linkQuality.hints.map((h, i) => <IssueItem key={i} text={h} type="warn" />)}
                       {!report.intelligence.linkQuality.hints.length && <IssueItem text="Internal link quality looks great!" type="ok" />}
                       {report.intelligence.linkQuality.topAnchors.length > 0 && (
                         <div style={{ marginTop: 12 }}>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#2a4560', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Top Anchor Texts</div>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Top Anchor Texts</div>
                           {report.intelligence.linkQuality.topAnchors.slice(0, 8).map((a, i) => (
-                            <div key={i} style={{ display: 'flex', gap: 10, padding: '4px 0', borderBottom: '1px solid #162035', alignItems: 'center' }}>
-                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: '#cdd8e8', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.text}</span>
-                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: '#5a7a96', flexShrink: 0 }}>{a.count}x</span>
+                            <div key={i} style={{ display: 'flex', gap: 10, padding: '4px 0', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.text}</span>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.62rem', color: 'var(--text2)', flexShrink: 0 }}>{a.count}x</span>
                             </div>
                           ))}
                         </div>
@@ -1692,7 +1740,7 @@ export default function Page() {
               {tab === 'competitor' && (
                 <div style={{ display: 'grid', gap: 16 }}>
                   <Card title="Competitor Comparison">
-                    <p style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: '#5a7a96', marginBottom: 12 }}>
+                    <p style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.72rem', color: 'var(--text2)', marginBottom: 12 }}>
                       Enter a competitor URL to compare key SEO metrics side by side.
                     </p>
                     <div style={{ display: 'flex', gap: 8 }}>
@@ -1703,19 +1751,19 @@ export default function Page() {
                         style={{
                           flex: 1,
                           padding: '10px 12px',
-                          background: '#080e1a',
-                          border: '1px solid #1e2f4a',
+                          background: 'var(--bg2)',
+                          border: '1px solid var(--border2)',
                           borderRadius: 5,
-                          color: '#cdd8e8',
+                          color: 'var(--text)',
                           fontFamily: 'IBM Plex Mono',
                           fontSize: '0.8rem',
                           outline: 'none',
                         }}
                         onFocus={(e) => {
-                          e.currentTarget.style.borderColor = '#00d4ff';
+                          e.currentTarget.style.borderColor = 'var(--cyan)';
                         }}
                         onBlur={(e) => {
-                          e.currentTarget.style.borderColor = '#1e2f4a';
+                          e.currentTarget.style.borderColor = 'var(--border2)';
                         }}
                       />
                       <button
@@ -1723,8 +1771,8 @@ export default function Page() {
                         disabled={compLoading || !compUrl.trim()}
                         style={{
                           padding: '10px 18px',
-                          background: '#00d4ff',
-                          color: '#04080f',
+                          background: 'var(--cyan)',
+                          color: 'var(--bg)',
                           border: 'none',
                           borderRadius: 5,
                           fontFamily: 'Barlow',
@@ -1743,7 +1791,7 @@ export default function Page() {
                   {compData && (
                     <Card title="Head-to-Head Comparison">
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 12, marginBottom: 12 }}>
-                        <div style={{ textAlign: 'right', fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#00d4ff', fontWeight: 600 }}>
+                        <div style={{ textAlign: 'right', fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--cyan)', fontWeight: 600 }}>
                           YOUR SITE
                         </div>
                         <div></div>
@@ -1759,13 +1807,13 @@ export default function Page() {
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 20 }}>
                         <div>
-                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: '#00d4ff', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+                          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.6rem', color: 'var(--cyan)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
                             Your Top Keywords
                           </div>
                           {compData.main.topKeywords.map((kw: any, i: number) => (
-                            <div key={i} style={{ display: 'flex', gap: 8, padding: '4px 0', borderBottom: '1px solid #162035' }}>
-                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: '#cdd8e8', flex: 1 }}>{kw.word}</span>
-                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#5a7a96' }}>{kw.count}x</span>
+                            <div key={i} style={{ display: 'flex', gap: 8, padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: 'var(--text)', flex: 1 }}>{kw.word}</span>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--text2)' }}>{kw.count}x</span>
                             </div>
                           ))}
                         </div>
@@ -1774,9 +1822,9 @@ export default function Page() {
                             Competitor Top Keywords
                           </div>
                           {compData.competitor.topKeywords.map((kw: any, i: number) => (
-                            <div key={i} style={{ display: 'flex', gap: 8, padding: '4px 0', borderBottom: '1px solid #162035' }}>
-                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: '#cdd8e8', flex: 1 }}>{kw.word}</span>
-                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#5a7a96' }}>{kw.count}x</span>
+                            <div key={i} style={{ display: 'flex', gap: 8, padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.7rem', color: 'var(--text)', flex: 1 }}>{kw.word}</span>
+                              <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--text2)' }}>{kw.count}x</span>
                             </div>
                           ))}
                         </div>
@@ -1790,18 +1838,18 @@ export default function Page() {
         )}
 
         {!report && !loading && (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: '#2a4560' }}>
+          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text3)' }}>
             <div style={{ fontFamily: 'IBM Plex Mono', fontSize: '3rem', marginBottom: 12, opacity: 0.3 }}>◈</div>
             <p style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.75rem', letterSpacing: '0.1em' }}>ENTER A URL ABOVE TO BEGIN ANALYSIS</p>
           </div>
         )}
 
-        <footer style={{ marginTop: 60, paddingTop: 20, borderTop: '1px solid #162035', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
-          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#2a4560' }}>DEEPSEO</span>
-          <span style={{ color: '#162035' }}>·</span>
-          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#2a4560' }}>Next.js + Vercel</span>
-          <span style={{ color: '#162035' }}>·</span>
-          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: '#2a4560' }}>Free & Open Source</span>
+        <footer style={{ marginTop: 60, paddingTop: 20, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
+          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--text3)' }}>DEEPSEO</span>
+          <span style={{ color: 'var(--border)' }}>·</span>
+          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--text3)' }}>Next.js + Vercel</span>
+          <span style={{ color: 'var(--border)' }}>·</span>
+          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: '0.65rem', color: 'var(--text3)' }}>Free & Open Source</span>
         </footer>
       </div>
 

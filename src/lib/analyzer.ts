@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import { analyzeIntelligence } from './intelligence';
 import type {
   SEOReport, OnPageSEO, TechnicalSEO, CrawlSEO,
   SecuritySEO, SocialSEO, ContentSEO, BacklinksSEO, RenderingSEO

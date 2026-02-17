@@ -322,7 +322,7 @@ const description =
   $('meta[property="og:description"]').attr('content')?.trim() ||
   null;
 
-const intelligence = analyzeIntelligence($, html, url, title, description);
+const intelligence = analyzeIntelligence(html, url, title, description, $);
   const overallScoreFinal = clamp(
     onPage.score * 0.17 +
     technical.score * 0.13 +

@@ -3,6 +3,7 @@ import type {
   SEOReport, OnPageSEO, TechnicalSEO, CrawlSEO,
   SecuritySEO, SocialSEO, ContentSEO, BacklinksSEO, RenderingSEO
 } from './types';
+import { analyzeAMP } from './ampAnalyzer';
 
 const FETCH_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (compatible; DeepSEOBot/2.0; +https://deepseo.vercel.app)',
@@ -321,21 +322,26 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
     iframes, flashContent, cssBlocking, jsBlocking, inlineStyles, issues: renderIssues,
   };
 
-  // ────────────────── OVERALL ──────────────────
-  const overallScore = clamp(
-    onPage.score * 0.20 +
-    technical.score * 0.15 +
-    security.score * 0.12 +
-    crawl.score * 0.13 +
-    content.score * 0.15 +
-    social.score * 0.10 +
-    rendering.score * 0.10 +
-    backlinks.score * 0.05
+  // ────────────────── AMP ──────────────────
+  const amp = await analyzeAMP(url, html);
+
+  // Re-weight overall score to include AMP
+  const overallScoreFinal = clamp(
+    onPage.score * 0.18 +
+    technical.score * 0.14 +
+    security.score * 0.11 +
+    crawl.score * 0.12 +
+    content.score * 0.14 +
+    social.score * 0.09 +
+    rendering.score * 0.09 +
+    backlinks.score * 0.05 +
+    amp.score * 0.08
   );
 
   return {
-    url, timestamp: new Date().toISOString(), overallScore, grade: grade(overallScore),
-    onPage, technical, crawl, security, social, content, backlinks, rendering,
+    url, timestamp: new Date().toISOString(),
+    overallScore: overallScoreFinal, grade: grade(overallScoreFinal),
+    onPage, technical, crawl, security, social, content, backlinks, rendering, amp,
     performance: { score: 0, performance: 0, accessibility: 0, bestPractices: 0, seo: 0, fcp: '—', lcp: '—', tbt: '—', cls: '—', tti: '—', speedIndex: '—', resourceCount: cssBlocking + jsBlocking, totalSize: '—', issues: [], error: 'Run separately' },
   };
 }

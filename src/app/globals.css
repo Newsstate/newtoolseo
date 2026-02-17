@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Barlow:wght@400;500;600;700;800;900&display=swap');
 
+/* ── DARK MODE (default) ─────────────────────────────────────────────────── */
 :root {
   --bg: #04080f;
   --bg2: #080e1a;
@@ -22,6 +23,34 @@
   --mono: 'IBM Plex Mono', monospace;
   --sans: 'Barlow', sans-serif;
   --radius: 6px;
+  --grid-line: rgba(0,212,255,0.025);
+  --glow-color: rgba(0,212,255,0.07);
+  --scanline-color: rgba(0,0,0,0.03);
+}
+
+/* ── LIGHT MODE ──────────────────────────────────────────────────────────── */
+html.light {
+  --bg: #f0f4f8;
+  --bg2: #e4eaf2;
+  --surface: #ffffff;
+  --surface2: #f5f7fa;
+  --border: #d0dbe8;
+  --border2: #b8c8da;
+  --cyan: #0070cc;
+  --cyan-dim: rgba(0,112,204,0.08);
+  --cyan-glow: rgba(0,112,204,0.15);
+  --green: #008060;
+  --green-dim: rgba(0,128,96,0.08);
+  --amber: #b06000;
+  --amber-dim: rgba(176,96,0,0.08);
+  --red: #cc2040;
+  --red-dim: rgba(204,32,64,0.08);
+  --text: #1a2a3a;
+  --text2: #4a6070;
+  --text3: #8098b0;
+  --grid-line: rgba(0,112,204,0.06);
+  --glow-color: rgba(0,112,204,0.05);
+  --scanline-color: rgba(0,0,0,0.015);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,23 +61,24 @@ body {
   font-family: var(--sans);
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 .scanline {
   position: fixed; inset: 0; pointer-events: none; z-index: 9999;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--scanline-color) 2px, var(--scanline-color) 4px);
 }
 .grid-bg {
   position: fixed; inset: 0; pointer-events: none;
-  background-image: linear-gradient(rgba(0,212,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.025) 1px, transparent 1px);
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 .glow-top {
   position: fixed; top: 0; left: 0; right: 0; height: 300px; pointer-events: none;
-  background: radial-gradient(ellipse 60% 100% at 50% 0%, rgba(0,212,255,0.07) 0%, transparent 70%);
+  background: radial-gradient(ellipse 60% 100% at 50% 0%, var(--glow-color) 0%, transparent 70%);
 }
 
-::selection { background: rgba(0,212,255,0.2); color: var(--cyan); }
+::selection { background: var(--cyan-glow); color: var(--cyan); }
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }

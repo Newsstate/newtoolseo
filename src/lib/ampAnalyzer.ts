@@ -201,7 +201,9 @@ export async function analyzeAMP(canonicalUrl: string, html: string): Promise<AM
   const metaCharset = $amp('meta[charset]').attr('charset') || null;
   const metaViewport = $amp('meta[name="viewport"]').attr('content') || null;
   const hreflang: string[] = [];
-  $amp('link[rel="alternate"][hreflang]').each((_, el) => hreflang.push($amp(el).attr('hreflang') || ''));
+$amp('link[rel="alternate"][hreflang]').each((_, el) => {
+  hreflang.push($amp(el).attr('hreflang') || '');
+});
   const robotsMeta = $amp('meta[name="robots"]').attr('content') || null;
   const isIndexable = !robotsMeta?.includes('noindex');
 

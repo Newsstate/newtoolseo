@@ -14,6 +14,7 @@ export interface SEOReport {
   backlinks: BacklinksSEO;
   rendering: RenderingSEO;
   amp: AMPAnalysis;
+  intelligence: IntelligenceReport;
 }
 
 export interface OnPageSEO {

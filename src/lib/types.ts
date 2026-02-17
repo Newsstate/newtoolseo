@@ -256,3 +256,70 @@ export interface AMPDiff {
   severity: 'critical' | 'warning' | 'info';
   message: string;
 }
+
+
+export interface IntelligenceReport {
+  score: number;
+  intent: IntentReport;
+  entities: EntityReport;
+  eeat: EEATReport;
+  linkQuality: LinkQualityReport;
+  serp: SerpPreviewReport;
+}
+
+export interface IntentReport {
+  intent: 'informational' | 'commercial' | 'transactional' | 'navigational' | 'mixed';
+  scores: {
+    informational: number;
+    commercial: number;
+    transactional: number;
+    navigational: number;
+  };
+  mismatchRisk: 'low' | 'medium' | 'high';
+}
+
+export interface EntityReport {
+  topEntities: { name: string; count: number }[];
+  uniqueCount: number;
+  coverageScore: number;
+  hints: string[];
+}
+
+export interface EEATReport {
+  score: number;
+  signals: {
+    hasAuthorMeta: boolean;
+    hasArticleSchema: boolean;
+    hasOrgSchema: boolean;
+    hasAbout: boolean;
+    hasContact: boolean;
+    hasPolicy: boolean;
+    hasReviews: boolean;
+    citationsCount: number;
+  };
+  gaps: string[];
+}
+
+export interface LinkQualityReport {
+  score: number;
+  totals: {
+    total: number;
+    contextual: number;
+    navFooter: number;
+    };
+  anchorDiversity: number;
+  genericAnchorRatio: number;
+  topAnchors: { text: string; count: number }[];
+  hints: string[];
+}
+
+export interface SerpPreviewReport {
+  title: string;
+  metaDescription: string;
+  titlePixels: number;
+  titleMaxPixels: number;
+  titleTruncationRisk: 'low' | 'medium' | 'high';
+  descriptionPixels: number;
+  descriptionMaxPixels: number;
+  descriptionTruncationRisk: 'low' | 'medium' | 'high';
+}

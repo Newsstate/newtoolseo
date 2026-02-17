@@ -316,13 +316,14 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
   };
 
   const amp = await analyzeAMP(url, html);
-const title = $('title').first().text().trim() || null;
-const description =
-  $('meta[name="description"]').attr('content')?.trim() ||
-  $('meta[property="og:description"]').attr('content')?.trim() ||
-  null;
 
-const intelligence = analyzeIntelligence(html, url, title, description, $);
+  const pageTitle = $('title').first().text().trim() || null;
+  const pageDescription =
+    $('meta[name="description"]').attr('content')?.trim() ||
+    $('meta[property="og:description"]').attr('content')?.trim() ||
+    null;
+
+  const intelligence = analyzeIntelligence(html, url, pageTitle, pageDescription, $);
   const overallScoreFinal = clamp(
     onPage.score * 0.17 +
     technical.score * 0.13 +

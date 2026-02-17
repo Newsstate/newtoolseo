@@ -1,6 +1,6 @@
 import type { CheerioAPI } from 'cheerio';
 import type {
-  IntelligenceSEO,
+  IntelligenceReport,
   EntitySEO,
   IntentSEO,
   EEATSEO,
@@ -11,7 +11,6 @@ import type {
 export type TruncationRisk = 'low' | 'medium' | 'high';
 
 function clamp(n: number) { return Math.max(0, Math.min(100, Math.round(n))); }
-
 function normSpace(s: string) { return s.replace(/\s+/g, ' ').trim(); }
 
 function approxPixelWidth(text: string) {
@@ -38,11 +37,18 @@ function truncationRiskByChars(n: number, goodMin: number, goodMax: number): Tru
   return 'high';
 }
 
+function entriesMax(freq: Record<string, number>) {
+  let m = 0;
+  for (const v of Object.values(freq)) if (v > m) m = v;
+  return m;
+}
+
 function extractEntitiesFromText(text: string) {
   const cleaned = text
     .replace(/\s+/g, ' ')
     .replace(/[\u200B-\u200D\uFEFF]/g, '')
     .trim();
+
   const candidates = cleaned.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3})\b/g) || [];
   const stop = new Set([
     'The','This','That','These','Those','And','Or','But','With','Without','For','From','About','Into','Over','Under',
@@ -60,25 +66,21 @@ function extractEntitiesFromText(text: string) {
     freq[t] = (freq[t] || 0) + 1;
   }
 
+  const max = Math.max(1, entriesMax(freq));
+
   const entries = Object.entries(freq)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 30)
     .map(([text, count]) => ({
       text,
       count,
-      prominence: Math.min(100, Math.round((count / Math.max(1, entriesMax(freq))) * 100)),
+      prominence: Math.min(100, Math.round((count / max) * 100)),
     }));
 
   const unique = Object.keys(freq).length;
   const totalMentions = Object.values(freq).reduce((a, b) => a + b, 0);
 
   return { entries, unique, totalMentions };
-}
-
-function entriesMax(freq: Record<string, number>) {
-  let m = 0;
-  for (const v of Object.values(freq)) if (v > m) m = v;
-  return m;
 }
 
 function detectEntityType(text: string, brandHints: string[]) {
@@ -102,11 +104,7 @@ function analyzeIntent($: CheerioAPI, url: string): IntentSEO {
   const cta = $('a,button').toArray().map(el => normSpace($(el).text())).filter(Boolean).slice(0, 60).join(' | ');
   const path = (() => { try { return new URL(url).pathname.toLowerCase(); } catch { return ''; } })();
 
-  const intentSignals = {
-    informational: 0,
-    transactional: 0,
-    navigational: 0,
-  };
+  const intentSignals = { informational: 0, transactional: 0, navigational: 0 };
 
   const text = `${title} ${h1} ${cta} ${path}`.toLowerCase();
 
@@ -119,14 +117,18 @@ function analyzeIntent($: CheerioAPI, url: string): IntentSEO {
   for (const w of navWords) if (text.includes(w)) intentSignals.navigational += 1;
 
   const total = intentSignals.informational + intentSignals.transactional + intentSignals.navigational;
-  let primary = 'informational' as const;
+
+  let primary: 'informational' | 'transactional' | 'navigational' = 'informational';
   if (intentSignals.transactional >= Math.max(intentSignals.informational, intentSignals.navigational)) primary = 'transactional';
   if (intentSignals.navigational > Math.max(intentSignals.informational, intentSignals.transactional)) primary = 'navigational';
 
+  const maxSig = Math.max(intentSignals.informational, intentSignals.transactional, intentSignals.navigational);
+  const dominance = total === 0 ? 0 : maxSig / total;
+
   const mismatchRisk: 'low' | 'medium' | 'high' =
     total === 0 ? 'high'
-      : (Math.max(intentSignals.informational, intentSignals.transactional, intentSignals.navigational) / total) >= 0.6 ? 'low'
-        : (Math.max(intentSignals.informational, intentSignals.transactional, intentSignals.navigational) / total) >= 0.45 ? 'medium'
+      : dominance >= 0.6 ? 'low'
+        : dominance >= 0.45 ? 'medium'
           : 'high';
 
   if (total === 0) issues.push('No clear intent signals detected. Clarify purpose via headings and CTAs.');
@@ -138,13 +140,7 @@ function analyzeIntent($: CheerioAPI, url: string): IntentSEO {
   if (mismatchRisk === 'high') score -= 24;
   score = clamp(score);
 
-  return {
-    score,
-    primaryIntent: primary,
-    intentSignals,
-    mismatchRisk,
-    issues,
-  };
+  return { score, primaryIntent: primary, intentSignals, mismatchRisk, issues };
 }
 
 function analyzeEEAT($: CheerioAPI): EEATSEO {
@@ -176,7 +172,7 @@ function analyzeEEAT($: CheerioAPI): EEATSEO {
 
   const citations = $('a[href^="http"]').toArray().filter(el => {
     const href = ($(el).attr('href') || '').toLowerCase();
-    return href.includes('wikipedia.org') || href.includes('nih.gov') || href.includes('who.int') || href.includes('gov') || href.includes('edu') || href.includes('research') || href.includes('journal');
+    return href.includes('wikipedia.org') || href.includes('nih.gov') || href.includes('who.int') || href.includes('.gov') || href.includes('.edu') || href.includes('journal');
   }).length;
 
   if (!hasAuthor) issues.push('No author signal detected. Add author name/bio and Person schema where relevant.');
@@ -230,7 +226,6 @@ function analyzeInternalLinkQuality($: CheerioAPI, url: string): InternalLinkQua
   const internalTotal = internal.length;
   const generic = new Set(['click here', 'learn more', 'read more', 'more', 'here', 'this', 'link']);
   const genericCount = internal.filter(l => generic.has(l.text.toLowerCase())).length;
-
   const contextual = internal.filter(l => l.text.length >= 4 && !generic.has(l.text.toLowerCase())).length;
 
   const anchorFreq: Record<string, number> = {};
@@ -239,6 +234,7 @@ function analyzeInternalLinkQuality($: CheerioAPI, url: string): InternalLinkQua
     if (!t) continue;
     anchorFreq[t] = (anchorFreq[t] || 0) + 1;
   }
+
   const uniqueAnchors = Object.keys(anchorFreq).length;
 
   const topAnchors = Object.entries(anchorFreq)
@@ -273,13 +269,15 @@ function analyzeInternalLinkQuality($: CheerioAPI, url: string): InternalLinkQua
 
 function analyzeSerpPreview(title: string | null, description: string | null, url: string): SERPPreviewSEO {
   const issues: string[] = [];
+
   const t = title ? normSpace(title) : null;
   const d = description ? normSpace(description) : null;
+
   const tLen = t?.length || 0;
   const dLen = d?.length || 0;
-  const px = t ? approxPixelWidth(t) : 0;
 
-  const tRisk: TruncationRisk = t ? truncationRiskByPixels(px) : 'high';
+  const tPx = t ? approxPixelWidth(t) : 0;
+  const tRisk: TruncationRisk = t ? truncationRiskByPixels(tPx) : 'high';
   const dRisk: TruncationRisk = d ? truncationRiskByChars(dLen, 120, 165) : 'high';
 
   if (!t) issues.push('No title for SERP preview.');
@@ -301,20 +299,26 @@ function analyzeSerpPreview(title: string | null, description: string | null, ur
 
   return {
     score,
-    title: { text: t, length: tLen, pixelWidthApprox: px, truncationRisk: tRisk },
+    title: { text: t, length: tLen, pixelWidthApprox: tPx, truncationRisk: tRisk },
     description: { text: d, length: dLen, truncationRisk: dRisk },
     urlPath,
     issues,
   };
 }
 
-export function analyzeIntelligence($: CheerioAPI, html: string, url: string, title: string | null, description: string | null): IntelligenceSEO {
+export function analyzeIntelligence(
+  $: CheerioAPI,
+  html: string,
+  url: string,
+  title: string | null,
+  description: string | null
+): IntelligenceReport {
   const issues: string[] = [];
   const recommendations: string[] = [];
 
   const brandHints: string[] = [];
-  const orgName = $('meta[property="og:site_name"]').attr('content')?.trim();
-  if (orgName) brandHints.push(orgName);
+  const siteName = $('meta[property="og:site_name"]').attr('content')?.trim();
+  if (siteName) brandHints.push(siteName);
   const h1 = $('h1').first().text().trim();
   if (h1) brandHints.push(h1.split(' ').slice(0, 2).join(' '));
 
@@ -324,14 +328,24 @@ export function analyzeIntelligence($: CheerioAPI, html: string, url: string, ti
 
   const entIssues: string[] = [];
   let entScore = 100;
-  if (typedEntities.length < 5) { entIssues.push('Low entity variety detected. Consider adding more concrete entities (brands, places, people, concepts) for topical clarity.'); entScore -= 22; }
-  if (typedEntities.filter(e => e.type === 'brand').length === 0 && brandHints.length === 0) { entIssues.push('No clear brand/entity anchor detected. Consider adding brand mentions or organization details.'); entScore -= 14; }
+
+  if (typedEntities.length < 5) {
+    entIssues.push('Low entity variety detected. Consider adding more concrete entities (brands, places, people, concepts) for topical clarity.');
+    entScore -= 22;
+  }
+  if (typedEntities.filter(e => e.type === 'brand').length === 0 && brandHints.length === 0) {
+    entIssues.push('No clear brand/entity anchor detected. Consider adding brand mentions or organization details.');
+    entScore -= 14;
+  }
+
   entScore = clamp(entScore);
 
   const entities: EntitySEO = {
     score: entScore,
     topEntities: typedEntities,
-    topicCoverageHint: typedEntities.length ? 'Use missing entities as content sections (FAQs, comparisons, definitions, examples).' : 'Add more topic-specific entities to increase semantic coverage.',
+    topicCoverageHint: typedEntities.length
+      ? 'Use missing entities as content sections (FAQs, comparisons, definitions, examples).'
+      : 'Add more topic-specific entities to increase semantic coverage.',
     issues: entIssues,
   };
 
@@ -352,7 +366,13 @@ export function analyzeIntelligence($: CheerioAPI, html: string, url: string, ti
   issues.push(...internalLinkQuality.issues);
   issues.push(...serpPreview.issues);
 
-  const score = clamp((entities.score * 0.22 + intent.score * 0.18 + eeat.score * 0.26 + internalLinkQuality.score * 0.18 + serpPreview.score * 0.16));
+  const score = clamp(
+    entities.score * 0.22 +
+    intent.score * 0.18 +
+    eeat.score * 0.26 +
+    internalLinkQuality.score * 0.18 +
+    serpPreview.score * 0.16
+  );
 
   return {
     score,

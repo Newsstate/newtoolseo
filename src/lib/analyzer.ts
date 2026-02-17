@@ -1,10 +1,10 @@
 import * as cheerio from 'cheerio';
-import { analyzeIntelligence } from './intelligence';
 import type {
   SEOReport, OnPageSEO, TechnicalSEO, CrawlSEO,
   SecuritySEO, SocialSEO, ContentSEO, BacklinksSEO, RenderingSEO
 } from './types';
 import { analyzeAMP } from './ampAnalyzer';
+import { analyzeIntelligence } from './intelligence';
 
 const FETCH_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (compatible; DeepSEOBot/2.0; +https://deepseo.vercel.app)',
@@ -28,7 +28,6 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
   if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
   const parsedUrl = new URL(url);
 
-  // Fetch main HTML
   const res = await fetch(url, { headers: FETCH_HEADERS, signal: AbortSignal.timeout(20000) });
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
 
@@ -39,7 +38,6 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
   const $ = cheerio.load(html);
   const baseHostname = parsedUrl.hostname;
 
-  // ────────────────── ON-PAGE ──────────────────
   const titleEl = $('title').first().text().trim();
   const titleLen = titleEl.length;
   const titleIssues: string[] = [];
@@ -72,7 +70,6 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
   let withAlt = 0, withoutAlt = 0, largeImgs = 0;
   imgs.each((_, el) => {
     const alt = $(el).attr('alt');
-    const src = $(el).attr('src') || '';
     if (alt !== undefined && alt.trim() !== '') withAlt++;
     else withoutAlt++;
     const w = parseInt($(el).attr('width') || '0');
@@ -103,7 +100,7 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
       const lu = new URL(href, url);
       if (lu.hostname === baseHostname) internalLinks++;
       else externalLinks++;
-    } catch { /* skip */ }
+    } catch { }
   });
 
   const onPageScore = clamp((titleScore + metaScore + headingScore + imgScore) / 4);
@@ -117,11 +114,13 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
     links: { internal: internalLinks, external: externalLinks, nofollow: nofollowLinks, issues: [] },
   };
 
-  // ────────────────── TECHNICAL ──────────────────
   const canonical = $('link[rel="canonical"]').attr('href') ?? null;
   const robots = $('meta[name="robots"]').attr('content') ?? null;
   const viewport = $('meta[name="viewport"]').attr('content') ?? null;
-  const charset = $('meta[charset]').attr('charset') ?? $('meta[http-equiv="Content-Type"]').attr('content')?.match(/charset=([^\s;]+)/)?.[1] ?? null;
+  const charset =
+    $('meta[charset]').attr('charset') ??
+    $('meta[http-equiv="Content-Type"]').attr('content')?.match(/charset=([^\s;]+)/)?.[1] ??
+    null;
   const lang = $('html').attr('lang') ?? null;
 
   const sdScripts = $('script[type="application/ld+json"]');
@@ -131,7 +130,7 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
       const json = JSON.parse($(el).html() || '{}');
       const t = json['@type'];
       if (t) sdTypes.push(Array.isArray(t) ? t.join(', ') : t);
-    } catch { /* ignore */ }
+    } catch { }
   });
 
   const hreflang: string[] = [];
@@ -139,13 +138,12 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
 
   const sitemapLinked = $('link[rel="sitemap"]').length > 0;
 
-  // Check robots.txt
   let robotsTxtContent: string | null = null;
   let robotsTxtOk = false;
   try {
     const rRes = await fetch(`${parsedUrl.protocol}//${parsedUrl.hostname}/robots.txt`, { headers: FETCH_HEADERS, signal: AbortSignal.timeout(5000) });
     if (rRes.ok) { robotsTxtOk = true; robotsTxtContent = (await rRes.text()).slice(0, 2000); }
-  } catch { /* skip */ }
+  } catch { }
 
   const httpToHttps = url.startsWith('https://');
   const techIssues: string[] = [];
@@ -168,7 +166,6 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
     issues: techIssues,
   };
 
-  // ────────────────── CRAWL ──────────────────
   const robotsMeta = $('meta[name="robots"]').attr('content') || '';
   const indexable = !robotsMeta.includes('noindex');
   const robotsBlocked = robotsMeta.includes('noindex');
@@ -185,7 +182,7 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
     try {
       const lu = new URL(href, url);
       if (lu.hostname === baseHostname) crawlLinks.push({ href: lu.href, text, rel });
-    } catch { /* skip */ }
+    } catch { }
   });
 
   const crawlIssues: string[] = [];
@@ -206,7 +203,6 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
     issues: crawlIssues,
   };
 
-  // ────────────────── SECURITY ──────────────────
   const https = url.startsWith('https://');
   const hsts = !!(responseHeaders['strict-transport-security']);
   const csp = !!(responseHeaders['content-security-policy']);
@@ -234,7 +230,6 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
     score: clamp(secScore), https, hsts, mixedContent, csp, xFrameOptions, safeHeaders, issues: secIssues
   };
 
-  // ────────────────── SOCIAL ──────────────────
   const ogTags: Record<string, string> = {};
   $('meta[property^="og:"]').each((_, el) => { ogTags[$(el).attr('property')!.replace('og:', '')] = $(el).attr('content') || ''; });
   const twTags: Record<string, string> = {};
@@ -256,7 +251,6 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
     issues: socIssues,
   };
 
-  // ────────────────── CONTENT ──────────────────
   const allText = $('body').text();
   const wordArr = allText.split(/\s+/).filter(Boolean);
   const totalWordCount = wordArr.length;
@@ -287,7 +281,6 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
     issues: contIssues,
   };
 
-  // ────────────────── BACKLINKS (heuristic) ──────────────────
   const nofollowRatio = externalLinks > 0 ? nofollowLinks / externalLinks : 0;
   const sponsoredLinks = $('a[rel*="sponsored"]').length;
   const ugcLinks = $('a[rel*="ugc"]').length;
@@ -300,7 +293,6 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
     note: 'Full backlink profile requires Ahrefs/Moz API. Showing on-page outbound link data.',
   };
 
-  // ────────────────── RENDERING ──────────────────
   const lazyLoadImgs = $('img[loading="lazy"]').length > 0;
   const jsRenderRequired = (html.match(/<script\b[^>]*>/gi) || []).length > 10 && $('body p').length < 3;
   const iframes = $('iframe').length;
@@ -323,26 +315,26 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
     iframes, flashContent, cssBlocking, jsBlocking, inlineStyles, issues: renderIssues,
   };
 
-  // ────────────────── AMP ──────────────────
   const amp = await analyzeAMP(url, html);
+  const intelligence = analyzeIntelligence(html, url);
 
-  // Re-weight overall score to include AMP
   const overallScoreFinal = clamp(
-    onPage.score * 0.18 +
-    technical.score * 0.14 +
+    onPage.score * 0.17 +
+    technical.score * 0.13 +
     security.score * 0.11 +
     crawl.score * 0.12 +
-    content.score * 0.14 +
-    social.score * 0.09 +
-    rendering.score * 0.09 +
+    content.score * 0.13 +
+    social.score * 0.08 +
+    rendering.score * 0.08 +
     backlinks.score * 0.05 +
-    amp.score * 0.08
+    amp.score * 0.07 +
+    intelligence.score * 0.06
   );
 
   return {
     url, timestamp: new Date().toISOString(),
     overallScore: overallScoreFinal, grade: grade(overallScoreFinal),
-    onPage, technical, crawl, security, social, content, backlinks, rendering, amp,
+    onPage, technical, crawl, security, social, content, backlinks, rendering, amp, intelligence,
     performance: { score: 0, performance: 0, accessibility: 0, bestPractices: 0, seo: 0, fcp: '—', lcp: '—', tbt: '—', cls: '—', tti: '—', speedIndex: '—', resourceCount: cssBlocking + jsBlocking, totalSize: '—', issues: [], error: 'Run separately' },
   };
 }

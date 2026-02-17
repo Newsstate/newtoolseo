@@ -661,7 +661,7 @@ export default function Page() {
                             <Stat label="Has AMP" value={report.amp.hasAmp ? 'Yes' : 'No'} />
                             <Stat label="AMP URL" value={report.amp.ampUrl ? 'Yes' : 'No'} />
                             <Stat label="AMP tag" value={report.amp.ampHtmlTag ? 'Yes' : 'No'} />
-                            <Stat label="Canonical→AMP" value={report.amp.canonicalPointsToAmp ? 'Yes' : 'No'} />
+                           <Stat label="Canonical→AMP" value={report.amp.canonicalToAmp ? 'Yes' : 'No'} />
                           </div>
                           <div className="mt-3">
                             <IssuesList issues={report.amp.issues} />

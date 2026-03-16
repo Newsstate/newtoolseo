@@ -948,9 +948,14 @@ export default function Page() {
                       {!report.crawl.issues.length && <IssueItem text="Page is fully crawlable!" type="ok" />}
                       <div style={{ marginTop: 12 }}>
                         <Check label="Indexable" value={report.crawl.indexable} pass={report.crawl.indexable} />
+                        <Check label="robots.txt crawl allowed" value={report.crawl.crawlAllowed} pass={report.crawl.crawlAllowed} />
                         <Check label="Noindex blocked" value={!report.crawl.robotsBlocked} pass={!report.crawl.robotsBlocked} />
                         <Check label="Nofollow page" value={!report.crawl.nofollowPage} pass={!report.crawl.nofollowPage} />
                         <Check label="Canonical correct" value={report.crawl.canonicalCorrect} pass={report.crawl.canonicalCorrect} />
+                        <Check label="Canonical target" value={report.crawl.canonicalTarget || 'Not set'} pass={!!report.crawl.canonicalTarget || report.crawl.canonicalCorrect} />
+                        <Check label="X-Robots-Tag" value={report.crawl.xRobotsTag || 'Not set'} pass={!report.crawl.xRobotsTag || !report.crawl.xRobotsTag.toLowerCase().includes('noindex')} />
+                        <Check label="Sitemap in robots.txt" value={report.crawl.sitemapReferencedInRobots} pass={report.crawl.sitemapReferencedInRobots} />
+                        <Check label="Estimated crawl depth" value={String(report.crawl.crawlDepthEstimate)} pass={report.crawl.crawlDepthEstimate <= 4} />
                         <Check label="Pagination tags" value={report.crawl.paginationTags} pass={true} />
                         <Check label="AMP version" value={report.crawl.ampVersion} pass={true} />
                       </div>
@@ -1113,6 +1118,9 @@ export default function Page() {
                     <div style={{ marginTop: 12 }}>
                       <Check label="Lazy Loading Images" value={report.rendering.lazyLoadImages} pass={report.rendering.lazyLoadImages} />
                       <Check label="JS Render Required" value={!report.rendering.jsRenderRequired ? 'Static' : 'JS required'} pass={!report.rendering.jsRenderRequired} />
+                      <Check label="Content visible without JS" value={report.rendering.contentVisibleWithoutJs} pass={report.rendering.contentVisibleWithoutJs} />
+                      <Check label="Hydration signals" value={String(report.rendering.hydrationSignals)} pass={report.rendering.hydrationSignals <= 4 || !report.rendering.jsRenderRequired} />
+                      <Check label="Preconnect/DNS hints" value={String(report.rendering.preconnectHints)} pass={report.rendering.preconnectHints > 0 || report.rendering.cssBlocking + report.rendering.jsBlocking <= 6} />
                       <Check label="Flash / Object" value={!report.rendering.flashContent ? 'None' : 'Found'} pass={!report.rendering.flashContent} />
                       <Check label="iFrames" value={`${report.rendering.iframes} found`} pass={report.rendering.iframes === 0} />
                       <Check label="Blocking CSS files" value={`${report.rendering.cssBlocking} files`} pass={report.rendering.cssBlocking <= 3} />

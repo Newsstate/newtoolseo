@@ -1,3 +1,13 @@
+
+export interface AIVisibilityReport {
+  score: number;
+  answerability: number;
+  entityAuthority: number;
+  citationReadiness: number;
+  llmAccessibility: number;
+  hints: string[];
+}
+
 export interface SEOReport {
   url: string;
   timestamp: string;

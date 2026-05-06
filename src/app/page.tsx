@@ -338,13 +338,18 @@ export default function Page() {
     setCompData(null);
     try {
       const res = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setReport(data);
+        
+         method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ url }),
+     });
+     const json = await res.json();
+
+if (!json.success) {
+  throw new Error(json.error || 'Analysis failed');
+}
+
+setReport(json.data);
       setTab('overview');
       setPsLoading(true);
       fetch('/api/pagespeed', {

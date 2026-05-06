@@ -284,6 +284,7 @@ export interface IntelligenceReport {
   eeat: EEATReport;
   linkQuality: LinkQualityReport;
   serp: SerpPreviewReport;
+   aiVisibility?: AIVisibilityReport;
 }
 
 export interface IntentReport {

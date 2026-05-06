@@ -336,49 +336,52 @@ export default function Page() {
     document.documentElement.classList.toggle('light', !isDark);
   }, [isDark]);
 
-  const analyze = useCallback(async () => {
-    if (!url.trim()) return;
-    setLoading(true);
-    setError('');
-    setReport(null);
-    setPsData(null);
-    setCompData(null);
-    try {
-      const res = await fetch('/api/analyze', {
-        
-         method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ url }),
-     });
-     const json = await res.json();
+// analyze ✅
+const analyze = useCallback(async () => {
+  if (!url.trim()) return;
 
-if (!json.success) {
-  throw new Error(json.error || 'Analysis failed');
-}
+  setLoading(true);
+  setError('');
+  setReport(null);
+  setPsData(null);
+  setCompData(null);
 
-setReport(json.data);
-      setTab('overview');
-      setPsLoading(true);
-      fetch('/api/pagespeed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      })
-        .then((r) => r.json())
-        .then(setPsData)
-        .catch(() => {})
-        .finally(() => setPsLoading(false));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Analysis failed');
-    } finally {
-      setLoading(false);
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+
+    const json = await res.json();
+
+    if (!json.success) {
+      throw new Error(json.error || 'Analysis failed');
     }
-  }, [url]);
 
-  
-// ------------------
-// AI Ranking
-// ------------------
+    setReport(json.data);
+    setTab('overview');
+
+    setPsLoading(true);
+    fetch('/api/pagespeed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    })
+      .then((r) => r.json())
+      .then(setPsData)
+      .catch(() => {})
+      .finally(() => setPsLoading(false));
+
+  } catch (e) {
+    setError(e instanceof Error ? e.message : 'Analysis failed');
+  } finally {
+    setLoading(false);
+  }
+}, [url]);
+
+
+// AI ranking ✅
 const runAIRanking = async () => {
   if (!prompt || !brand) return;
 
@@ -387,9 +390,7 @@ const runAIRanking = async () => {
   try {
     const res = await fetch("/api/ai-rank", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         prompt,
         brand,
@@ -397,22 +398,49 @@ const runAIRanking = async () => {
       }),
     });
 
-  
-  const compareCompetitor = useCallback(async () => {
+    const data = await res.json();
+    setRanking(data);
+
+  } catch (e) {
+    setError("AI ranking failed");
+  } finally {
+    setRankingLoading(false);
+  }
+};
+
+
+// competitor ✅
+const compareCompetitor = useCallback(async () => {
   if (!compUrl.trim() || !report) return;
 
   setCompLoading(true);
 
   try {
-    const res = await fetch('/api/competitor', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/api/competitor", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         url: report.url,
         competitor: compUrl,
       }),
     });
 
+    const data = await res.json();
+    setCompData(data);
+
+  } catch (e) {
+    setError("Competitor analysis failed");
+  } finally {
+    setCompLoading(false);
+  }
+}, [compUrl, report]);
+
+
+// helper
+const derivedCanonicalToAmp = (r: SEOReport | null) => {
+  if (!r?.amp) return false;
+  return !!r.amp.ampUrl;
+};
 
 
 

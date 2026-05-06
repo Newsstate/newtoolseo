@@ -722,65 +722,76 @@ const runAIRanking = async () => {
               ))}
             </div>
 
-            <div style={{ animation: 'fadeUp 0.25s ease' }}>
-              {tab === 'overview' && (
-  <div>
-     {/* overview content */}
-  </div>
-)}
-{tab === "ai" && (
-  <div style={{ display: "grid", gap: 20 }}>
+          <div style={{ animation: "fadeUp 0.25s ease" }}>
 
-    <Card title="AI Prompt Ranking Engine" accent="#9b5cff">
+  {/* OVERVIEW TAB */}
+  {tab === "overview" && (
+    <div>
+      <Card>
+        <Metric title="Overview Metric" value={0} />
+      </Card>
+    </div>
+  )}
 
-      <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+  {/* AI TAB */}
+  {tab === "ai" && (
+    <div style={{ display: "grid", gap: 20 }}>
+      <Card title="AI Prompt Ranking Engine" accent="#9b5cff">
 
-        <input
-          placeholder="Prompt (example: best CRM for small business)"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          style={{
-            flex: 2,
-            padding: 10,
-            background: "var(--bg2)",
-            border: "1px solid var(--border)",
-            borderRadius: 6,
-            color: "var(--text)",
-            fontFamily: "IBM Plex Mono",
-          }}
-        />
+        <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
 
-        <input
-          placeholder="Your Brand"
-          value={brand}
-          onChange={(e) => setBrand(e.target.value)}
-          style={{
-            flex: 1,
-            padding: 10,
-            background: "var(--bg2)",
-            border: "1px solid var(--border)",
-            borderRadius: 6,
-            color: "var(--text)",
-            fontFamily: "IBM Plex Mono",
-          }}
-        />
+          <input
+            placeholder="Prompt (example: best CRM for small business)"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            style={{
+              flex: 2,
+              padding: 10,
+              background: "var(--bg2)",
+              border: "1px solid var(--border)",
+              borderRadius: 6,
+              color: "var(--text)",
+              fontFamily: "IBM Plex Mono",
+            }}
+          />
 
-        <button
-          onClick={runAIRanking}
-          disabled={rankingLoading}
-          style={{
-            padding: "10px 18px",
-            background: "var(--cyan)",
-            border: "none",
-            borderRadius: 6,
-            cursor: "pointer",
-            fontWeight: 700,
-          }}
-        >
-          {rankingLoading ? "Checking..." : "Run"}
-        </button>
+          <input
+            placeholder="Your Brand"
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+            style={{
+              flex: 1,
+              padding: 10,
+              background: "var(--bg2)",
+              border: "1px solid var(--border)",
+              borderRadius: 6,
+              color: "var(--text)",
+              fontFamily: "IBM Plex Mono",
+            }}
+          />
 
-      </div>
+          <button
+            onClick={runAIRanking}
+            disabled={rankingLoading}
+            style={{
+              padding: "10px 18px",
+              background: "var(--cyan)",
+              border: "none",
+              borderRadius: 6,
+              cursor: "pointer",
+              fontWeight: 700,
+            }}
+          >
+            {rankingLoading ? "Checking..." : "Run"}
+          </button>
+
+        </div>
+
+      </Card>
+    </div>
+  )}
+
+</div>
 
       {ranking && (
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>

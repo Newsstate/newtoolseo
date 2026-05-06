@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import { analyzeAIVisibility } from "./aiVisibility";
 import type { CheerioAPI } from 'cheerio';
 import type {
   IntelligenceReport,
@@ -346,6 +347,7 @@ export function analyzeIntelligence(
   $maybe?: CheerioAPI
 ): IntelligenceReport {
   const $ = $maybe ?? cheerio.load(html);
+  const aiVisibility = analyzeAIVisibility($, url);
 
   const intent = analyzeIntent($, url);
   const entities = analyzeEntities($);
@@ -369,5 +371,6 @@ export function analyzeIntelligence(
     eeat,
     linkQuality,
     serp,
+    aiVisibility,
   };
 }

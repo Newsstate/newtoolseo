@@ -376,60 +376,10 @@ setReport(json.data);
   }, [url]);
 
   
-  const compareCompetitor = useCallback(async () => {
-
+// ------------------
+// AI Ranking
+// ------------------
 const runAIRanking = async () => {
-  if (!prompt || !brand) return;
-
-  setRankingLoading(true);
-
-  try {
-    const res = await fetch("/api/ai-ranking", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        prompt,
-        brand,
-        url: report?.url,
-      }),
-    });
-
-    const data = await res.json();
-    setRanking(data);
-  } catch (e) {
-    setError("AI ranking failed");
-  } finally {
-    setRankingLoading(false);
-  }
-};
-    if (!compUrl.trim() || !report) return;
-    setCompLoading(true);
-    try {
-      const res = await fetch('/api/competitor', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: report.url, competitor: compUrl }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setCompData(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Competitor analysis failed');
-    } finally {
-      setCompLoading(false);
-    }
-  }, [compUrl, report]);
-
-  const derivedCanonicalToAmp = (r: SEOReport | null) => {
-    if (!r?.amp) return false;
-    return !!r.amp.ampUrl;
-  };
-
-
-
-  const runAIRanking = async () => {
   if (!prompt || !brand) return;
 
   setRankingLoading(true);
@@ -446,6 +396,53 @@ const runAIRanking = async () => {
         url: report?.url,
       }),
     });
+
+    const data = await res.json();
+    setRanking(data);
+  } catch (e) {
+    console.error(e);
+    setError("AI ranking failed");
+  } finally {
+    setRankingLoading(false);
+  }
+};
+  
+  const compareCompetitor = useCallback(async () => {
+  if (!compUrl.trim() || !report) return;
+
+  setCompLoading(true);
+
+  try {
+    const res = await fetch('/api/competitor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: report.url,
+        competitor: compUrl,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    setCompData(data);
+  } catch (e) {
+    setError(
+      e instanceof Error ? e.message : 'Competitor analysis failed'
+    );
+  } finally {
+    setCompLoading(false);
+  }
+}, [compUrl, report]);
+
+  const derivedCanonicalToAmp = (r: SEOReport | null) => {
+    if (!r?.amp) return false;
+    return !!r.amp.ampUrl;
+  };
+
+
+
+ 
 
     const data = await res.json();
     setRanking(data);

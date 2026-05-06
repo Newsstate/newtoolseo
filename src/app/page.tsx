@@ -397,15 +397,6 @@ const runAIRanking = async () => {
       }),
     });
 
-    const data = await res.json();
-    setRanking(data);
-  } catch (e) {
-    console.error(e);
-    setError("AI ranking failed");
-  } finally {
-    setRankingLoading(false);
-  }
-};
   
   const compareCompetitor = useCallback(async () => {
   if (!compUrl.trim() || !report) return;
@@ -422,38 +413,13 @@ const runAIRanking = async () => {
       }),
     });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
 
-    setCompData(data);
-  } catch (e) {
-    setError(
-      e instanceof Error ? e.message : 'Competitor analysis failed'
-    );
-  } finally {
-    setCompLoading(false);
-  }
-}, [compUrl, report]);
-
-  const derivedCanonicalToAmp = (r: SEOReport | null) => {
-    if (!r?.amp) return false;
-    return !!r.amp.ampUrl;
-  };
 
 
 
  
 
-    const data = await res.json();
-    setRanking(data);
-
-  } catch (e) {
-    console.error(e);
-    setError("AI ranking failed");
-  } finally {
-    setRankingLoading(false);
-  }
-};
+   
 
   
   return (

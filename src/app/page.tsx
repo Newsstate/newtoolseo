@@ -772,7 +772,110 @@ export default function Page() {
                       ))}
                       {!report.onPage.title.issues.length && <IssueItem text="Title looks good!" type="ok" />}
                     </Card>
+{/* AI Visibility Intelligence */}
+<Card
+  title="🤖 AI Visibility Intelligence"
+  score={report.intelligence.aiVisibility.score}
+>
+  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
 
+    {[
+      {
+        label: 'Answerability',
+        value: report.intelligence.aiVisibility.answerability,
+        color: 'var(--cyan)',
+      },
+      {
+        label: 'Entity Authority',
+        value: report.intelligence.aiVisibility.entityAuthority,
+        color: '#00f5a0',
+      },
+      {
+        label: 'Citation Readiness',
+        value: report.intelligence.aiVisibility.citationReadiness,
+        color: '#ffb700',
+      },
+      {
+        label: 'LLM Accessibility',
+        value: report.intelligence.aiVisibility.llmAccessibility,
+        color: '#b388ff',
+      },
+    ].map(metric => (
+      <div
+        key={metric.label}
+        style={{
+          flex: 1,
+          minWidth: 120,
+          background: 'var(--surface2)',
+          border: '1px solid var(--border)',
+          borderRadius: 6,
+          padding: '12px',
+        }}
+      >
+        <div
+          style={{
+            fontFamily: 'IBM Plex Mono',
+            fontSize: '1.4rem',
+            fontWeight: 600,
+            color: metric.color,
+            lineHeight: 1,
+          }}
+        >
+          {metric.value}
+        </div>
+
+        <div
+          style={{
+            fontFamily: 'IBM Plex Mono',
+            fontSize: '0.55rem',
+            color: 'var(--text3)',
+            textTransform: 'uppercase',
+            marginTop: 4,
+          }}
+        >
+          {metric.label}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  {/* AI Recommendations */}
+  {report.intelligence.aiVisibility.hints.map((h: string, i: number) => (
+    <IssueItem key={i} text={h} type="warn" />
+  ))}
+
+  {!report.intelligence.aiVisibility.hints.length && (
+    <IssueItem text="AI systems can easily understand and cite this page." type="ok" />
+  )}
+
+  <div style={{ marginTop: 14 }}>
+    <div
+      style={{
+        fontFamily: 'IBM Plex Mono',
+        fontSize: '0.6rem',
+        color: 'var(--text3)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.1em',
+        marginBottom: 6,
+      }}
+    >
+      AI Optimization Insight
+    </div>
+
+    <div
+      style={{
+        fontFamily: 'IBM Plex Mono',
+        fontSize: '0.65rem',
+        color: 'var(--text2)',
+        lineHeight: 1.6,
+      }}
+    >
+      This score predicts how well your content performs in AI search engines
+      like ChatGPT, Perplexity, Claude, and Google SGE. Higher scores indicate
+      stronger answer extraction, entity recognition, and citation likelihood.
+    </div>
+  </div>
+</Card>
                     <Card title="Meta Description" score={report.onPage.metaDescription.score}>
                       <div
                         style={{

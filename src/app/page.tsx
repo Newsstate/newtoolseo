@@ -691,9 +691,10 @@ const runAIRanking = async () => {
 
             <div style={{ animation: 'fadeUp 0.25s ease' }}>
               {tab === 'overview' && (
-            {/* ===============================
-   AI VISIBILITY TAB
-================================ */}
+  <div>
+     {/* overview content */}
+  </div>
+)}
 {tab === "ai" && (
   <div style={{ display: "grid", gap: 20 }}>
 

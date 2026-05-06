@@ -1,6 +1,7 @@
 'use client';
 import { useState, useCallback, useEffect } from 'react';
 import type { SEOReport } from '@/lib/types';
+import Metric from "@/components/Metric";
 
 function scoreColor(s: number) {
   return s >= 80 ? '#00f5a0' : s >= 60 ? '#ffb700' : '#ff4060';

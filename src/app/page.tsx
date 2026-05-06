@@ -375,6 +375,7 @@ setReport(json.data);
     }
   }, [url]);
 
+  
   const compareCompetitor = useCallback(async () => {
 
 const runAIRanking = async () => {
@@ -426,6 +427,38 @@ const runAIRanking = async () => {
     return !!r.amp.ampUrl;
   };
 
+
+
+  const runAIRanking = async () => {
+  if (!prompt || !brand) return;
+
+  setRankingLoading(true);
+
+  try {
+    const res = await fetch("/api/ai-rank", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt,
+        brand,
+        url: report?.url,
+      }),
+    });
+
+    const data = await res.json();
+    setRanking(data);
+
+  } catch (e) {
+    console.error(e);
+    setError("AI ranking failed");
+  } finally {
+    setRankingLoading(false);
+  }
+};
+
+  
   return (
     <>
       <div className="grid-bg" />

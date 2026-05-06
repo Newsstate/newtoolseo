@@ -799,10 +799,10 @@ const runAIRanking = async () => {
 
     {report?.intelligence?.aiVisibility && (
       <Card title="Detected AI Visibility" accent="#9b5cff">
-        <Metric
-          label="AI Visibility Score"
-          value={report.intelligence.aiVisibility.score}
-        />
+      <Metric
+  title="AI Visibility Score"
+  value={report.intelligence.aiVisibility.score}
+/>
       </Card>
     )}
 

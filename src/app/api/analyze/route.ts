@@ -3,6 +3,19 @@ import { runFullAnalysis } from '@/lib/analyzer';
 
 export const maxDuration = 30;
 
+export async function OPTIONS() {
+  return NextResponse.json(
+    {},
+    {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    }
+  );
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -11,51 +24,40 @@ export async function POST(req: NextRequest) {
     if (!url) {
       return NextResponse.json(
         { success: false, error: 'URL is required' },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
       );
     }
 
-    // -------------------------
-    // RUN MAIN ANALYSIS
-    // -------------------------
     const report = await runFullAnalysis(url);
-
-    // -------------------------
-    // SAFETY FALLBACK
-    // (prevents frontend crash)
-    // -------------------------
-    if (!report.intelligence?.aiVisibility) {
-      report.intelligence = {
-        ...report.intelligence,
-        aiVisibility: {
-          score: 0,
-          answerability: 0,
-          entityAuthority: 0,
-          citationReadiness: 0,
-          llmAccessibility: 0,
-          hints: ['AI visibility analysis not available'],
-        },
-      };
-    }
-
-    // -------------------------
-    // RETURN STANDARD RESPONSE
-    // -------------------------
-    return NextResponse.json({
-      success: true,
-      data: report,
-    });
-
-  } catch (err) {
-    console.error('Analysis Error:', err);
 
     return NextResponse.json(
       {
-        success: false,
-        error:
-          err instanceof Error ? err.message : 'Analysis failed',
+        success: true,
+        data: report,
       },
-      { status: 500 }
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
+    );
+  } catch (err) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: err instanceof Error ? err.message : 'Analysis failed',
+      },
+      {
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
     );
   }
 }

@@ -23,6 +23,60 @@ function grade(score: number) {
 
 function clamp(n: number) { return Math.max(0, Math.min(100, Math.round(n))); }
 
+function normalizePath(path: string) {
+  if (!path.startsWith('/')) return `/${path}`;
+  return path;
+}
+
+function robotsAllowsPath(robotsTxt: string | null, path: string) {
+  if (!robotsTxt) return true;
+  const lines = robotsTxt
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#'));
+
+  let appliesToAllBots = false;
+  const disallowRules: string[] = [];
+  const allowRules: string[] = [];
+
+  for (const line of lines) {
+    const [rawKey, ...rest] = line.split(':');
+    if (!rawKey || rest.length === 0) continue;
+    const key = rawKey.trim().toLowerCase();
+    const value = rest.join(':').trim();
+
+    if (key === 'user-agent') {
+      appliesToAllBots = value === '*';
+      continue;
+    }
+
+    if (!appliesToAllBots) continue;
+    if (key === 'disallow' && value) disallowRules.push(normalizePath(value));
+    if (key === 'allow' && value) allowRules.push(normalizePath(value));
+  }
+
+  const normalizedPath = normalizePath(path || '/');
+  const matchedAllow = allowRules
+    .filter((rule) => normalizedPath.startsWith(rule))
+    .sort((a, b) => b.length - a.length)[0];
+  const matchedDisallow = disallowRules
+    .filter((rule) => normalizedPath.startsWith(rule))
+    .sort((a, b) => b.length - a.length)[0];
+
+  if (!matchedDisallow) return true;
+  if (!matchedAllow) return false;
+  return matchedAllow.length >= matchedDisallow.length;
+}
+
+function parseIndexingDirectives(...directives: (string | null)[]) {
+  return directives
+    .filter(Boolean)
+    .join(',')
+    .split(',')
+    .map((d) => d.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
   let url = rawUrl.trim();
   if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
@@ -167,12 +221,19 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
   };
 
   const robotsMeta = $('meta[name="robots"]').attr('content') || '';
-  const indexable = !robotsMeta.includes('noindex');
-  const robotsBlocked = robotsMeta.includes('noindex');
-  const nofollowPage = robotsMeta.includes('nofollow');
+  const xRobotsTag = responseHeaders['x-robots-tag'] || null;
+  const indexingDirectives = parseIndexingDirectives(robotsMeta, xRobotsTag);
+  const hasNoindex = indexingDirectives.includes('noindex') || indexingDirectives.includes('none');
+  const hasNofollow = indexingDirectives.includes('nofollow') || indexingDirectives.includes('none');
+  const indexable = !hasNoindex;
+  const robotsBlocked = hasNoindex;
+  const nofollowPage = hasNofollow;
+  const crawlAllowed = robotsAllowsPath(robotsTxtContent, parsedUrl.pathname);
   const canonicalCorrect = !canonical || canonical === url || canonical === url.replace(/\/$/, '');
   const paginationTags = $('link[rel="next"], link[rel="prev"]').length > 0;
   const ampVersion = !!($('link[rel="amphtml"]').attr('href') || $('html[amp]').length);
+  const sitemapReferencedInRobots = robotsTxtContent ? /(^|\n)\s*sitemap\s*:/i.test(robotsTxtContent) : false;
+  const crawlDepthEstimate = Math.max(1, Math.ceil((internalLinks || 1) / 12));
 
   const crawlLinks: { href: string; text: string; rel: string }[] = [];
   $('a[href]').each((_, el) => {
@@ -187,15 +248,22 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
 
   const crawlIssues: string[] = [];
   let crawlScore = 100;
+  if (!crawlAllowed) { crawlIssues.push('Blocked by robots.txt for generic crawlers — page may not be discoverable'); crawlScore -= 35; }
   if (!indexable) { crawlIssues.push('Page has noindex — Google will NOT index this page'); crawlScore -= 50; }
   if (nofollowPage) { crawlIssues.push('nofollow on page — PageRank not passing through links'); crawlScore -= 20; }
+  if (xRobotsTag && hasNoindex) { crawlIssues.push('X-Robots-Tag includes noindex — header-level indexing block detected'); crawlScore -= 25; }
   if (!canonicalCorrect) { crawlIssues.push('Canonical URL mismatch — may cause duplicate content'); crawlScore -= 20; }
+  if (!sitemapReferencedInRobots) { crawlIssues.push('No sitemap directive in robots.txt — slower URL discovery possible'); crawlScore -= 10; }
+  if (crawlDepthEstimate > 4) { crawlIssues.push(`Estimated crawl depth is high (${crawlDepthEstimate}) — improve internal linking to reduce orphan risk`); crawlScore -= 10; }
   if (!paginationTags && internalLinks > 50) crawlIssues.push('No rel=next/prev for pagination — consider adding');
   if (internalLinks < 3) { crawlIssues.push('Very few internal links — add more for better crawlability'); crawlScore -= 15; }
 
   const crawl: CrawlSEO = {
     score: clamp(crawlScore),
-    indexable, robotsBlocked, nofollowPage, canonicalCorrect,
+    indexable, robotsBlocked, crawlAllowed, xRobotsTag, indexingDirectives, nofollowPage, canonicalCorrect,
+    canonicalTarget: canonical,
+    sitemapReferencedInRobots,
+    crawlDepthEstimate,
     internalLinks: crawlLinks.slice(0, 30),
     brokenLinks: [],
     redirectChains: [],
@@ -295,6 +363,9 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
 
   const lazyLoadImgs = $('img[loading="lazy"]').length > 0;
   const jsRenderRequired = (html.match(/<script\b[^>]*>/gi) || []).length > 10 && $('body p').length < 3;
+  const contentVisibleWithoutJs = $('noscript').text().trim().length > 0 || $('main, article, h1, p').length >= 3;
+  const hydrationSignals = (html.match(/(__NEXT_DATA__|data-reactroot|data-hydration|hydration)/gi) || []).length;
+  const preconnectHints = $('link[rel="preconnect"], link[rel="dns-prefetch"]').length;
   const iframes = $('iframe').length;
   const flashContent = $('object, embed').length > 0;
   const cssBlocking = $('link[rel="stylesheet"]').length;
@@ -305,6 +376,9 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
   let renderScore = 100;
   if (!lazyLoadImgs && totalImgs > 3) { renderIssues.push('Images not lazy-loaded — add loading="lazy" attribute'); renderScore -= 20; }
   if (jsRenderRequired) { renderIssues.push('Page may require JS rendering — Googlebot may miss content'); renderScore -= 25; }
+  if (!contentVisibleWithoutJs) { renderIssues.push('Limited no-JS content detected — ensure critical content is server-rendered'); renderScore -= 25; }
+  if (hydrationSignals > 4 && jsRenderRequired) { renderIssues.push('Heavy hydration signals + JS dependency — verify rendered HTML parity for crawlers'); renderScore -= 10; }
+  if (preconnectHints === 0 && (cssBlocking + jsBlocking) > 6) { renderIssues.push('No preconnect/dns-prefetch hints for heavy resource load'); renderScore -= 8; }
   if (iframes > 0) { renderIssues.push(`${iframes} iframe(s) — Googlebot may not index iframe content`); renderScore -= 10; }
   if (flashContent) { renderIssues.push('Flash/Object content detected — incompatible with modern crawlers'); renderScore -= 30; }
   if (cssBlocking > 5) { renderIssues.push(`${cssBlocking} render-blocking CSS files — consider inlining critical CSS`); renderScore -= 10; }
@@ -312,6 +386,7 @@ export async function runFullAnalysis(rawUrl: string): Promise<SEOReport> {
 
   const rendering: RenderingSEO = {
     score: clamp(renderScore), lazyLoadImages: lazyLoadImgs, jsRenderRequired,
+    contentVisibleWithoutJs, hydrationSignals, preconnectHints,
     iframes, flashContent, cssBlocking, jsBlocking, inlineStyles, issues: renderIssues,
   };
 

@@ -81,8 +81,14 @@ export interface CrawlSEO {
   score: number;
   indexable: boolean;
   robotsBlocked: boolean;
+  crawlAllowed: boolean;
+  xRobotsTag: string | null;
+  indexingDirectives: string[];
   nofollowPage: boolean;
   canonicalCorrect: boolean;
+  canonicalTarget: string | null;
+  sitemapReferencedInRobots: boolean;
+  crawlDepthEstimate: number;
   internalLinks: CrawlLink[];
   brokenLinks: string[];
   redirectChains: string[];
@@ -147,6 +153,9 @@ export interface RenderingSEO {
   score: number;
   lazyLoadImages: boolean;
   jsRenderRequired: boolean;
+  contentVisibleWithoutJs: boolean;
+  hydrationSignals: number;
+  preconnectHints: number;
   iframes: number;
   flashContent: boolean;
   cssBlocking: number;
